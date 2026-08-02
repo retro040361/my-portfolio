@@ -5,6 +5,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-global); /* 全域背景變數 */
+  color: var(--text-primary); /* 全域文字變數 */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
