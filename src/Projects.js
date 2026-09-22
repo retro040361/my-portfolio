@@ -73,7 +73,7 @@ const Projects = () => {
             key={idx} 
             className="project-card-wrapper"
             variants={itemVariants}
-            whileHover={{ y: -8, transition: { duration: 0.3 } }}
+            whileHover={{ y: -6, transition: { duration: 0.15, ease: 'easeOut' } }}
             onClick={() => setSelectedProject(project)}
             style={{ cursor: 'pointer' }}
           >
@@ -108,19 +108,12 @@ const Projects = () => {
         {selectedProject && (
           <div className="modal-overlay" onClick={() => { setSelectedProject(null); setIsMaximized(false); }}>
             <motion.div 
-              layout
               className={`modal-box retro-window ${isMaximized ? 'is-maximized' : ''}`}
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ 
-                type: 'spring', 
-                damping: 25, 
-                stiffness: 300,
-                layout: { duration: 0.38, ease: [0.16, 1, 0.3, 1] }
-              }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               onClick={(e) => e.stopPropagation()} // 阻止事件冒泡
-              style={{ maxWidth: isMaximized ? '95vw' : '650px' }}
             >
               {/* Option 2 風格：macOS/Linux 交通燈視窗標題列 */}
               <div className="login-window-header" style={{ padding: '10px 16px', background: 'var(--navbar-bg)', borderBottom: '1px solid var(--card-border)' }}>
@@ -144,16 +137,16 @@ const Projects = () => {
               {/* 滾動內容包裝容器（讓 Cover Banner 隨捲動往上滑動消失） */}
               <div className="modal-scroll-body">
                 {/* 頂部橫幅 */}
-                <div className="modal-banner" style={{ height: '150px', minHeight: '150px', background: selectedProject.gradient }}>
-                  <span className="modal-emoji" style={{ fontSize: '4.5rem' }}>{selectedProject.emoji}</span>
+                <div className="modal-banner" style={{ background: selectedProject.gradient }}>
+                  <span className="modal-emoji">{selectedProject.emoji}</span>
                 </div>
 
                 {/* 內文主體 */}
-                <div className="modal-body" style={{ padding: '24px 28px' }}>
+                <div className="modal-body">
                   <span className="modal-meta-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     📁 {selectedProject.path}
                   </span>
-                  <h2 className="modal-title" style={{ fontSize: '1.45rem', marginTop: '4px', marginBottom: '8px' }}>
+                  <h2 className="modal-title" style={{ fontSize: '1.65rem', marginTop: '4px', marginBottom: '10px' }}>
                     {selectedProject.title}
                   </h2>
                   <p className="project-desc" style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', lineHeight: 1.6, margin: '10px 0 20px 0' }}>

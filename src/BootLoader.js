@@ -128,18 +128,23 @@ const BootLoader = ({ onComplete }) => {
     };
   }, [phase]);
 
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
   // 3. 當驗證成功 (phase === 'auth') 時，延遲 800ms 呼叫 onComplete 完成登入跳轉
   useEffect(() => {
     if (phase !== 'auth') return;
 
     const timerId = setTimeout(() => {
-      onComplete();
+      onCompleteRef.current?.();
     }, 800);
 
     return () => {
       clearTimeout(timerId);
     };
-  }, [phase, onComplete]);
+  }, [phase]);
 
   return (
     <div className="boot-loader-overlay">

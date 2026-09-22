@@ -1,5 +1,21 @@
 [
   {
+    "id": 7,
+    "title": "[雜談] 關於AI開發的一些小想法 vol. 1",
+    "date": "2026-08-30",
+    "category": "tech",
+    "excerpt": "最近用AI開發的一些小想法，紀錄一下，寫vol.1是我猜之後應該還會有更多想法ㄅ，除非我放棄用AIㄌ",
+    "markdownFile": "/posts/7.md"
+  },
+  {
+    "id": 6,
+    "title": "[食記] 第一次自己煮的減脂餐",
+    "date": "2026-08-04",
+    "category": "life",
+    "excerpt": "搬到新家之後一直想要煮點東西，突然想到好像可以自己準備健康餐就來試試看ㄌ",
+    "markdownFile": "/posts/6.md"
+  },
+  {
     "id": 5,
     "title": "2025 回顧",
     "date": "2026-07-13",

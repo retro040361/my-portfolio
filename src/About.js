@@ -136,7 +136,7 @@ const About = () => {
         {/* 左側：個人 Profile 卡片 */}
         <motion.div className="about-profile-card" variants={itemVariants}>
           <div className="about-avatar-wrapper">
-            <img src="/Retr0Man.png" alt="Retro" className="about-avatar" />
+            <img src={`${process.env.PUBLIC_URL}/Retr0Man.png`} alt="Retro" className="about-avatar" />
           </div>
           <h2>Retro</h2>
           <p className="about-title">Software Engineer @ Synopsys</p>

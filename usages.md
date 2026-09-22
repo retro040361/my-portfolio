@@ -5,10 +5,10 @@
   只要在 Markdown 中將圖片寫在同一行（中間用空格隔開，不要換行），系統就會自動識別並將它們排成一行並排（且手機端會自動適應適應）：
 
    <<!-- 一行 2 張圖片並排 -->
-    ![圖1](/image/2025_recap/apr_1.jpg) ![圖2](/image/2025_recap/apr_2.jpg)
+    ![圖1](../image/2025_recap/apr_1.jpg) ![圖2](../image/2025_recap/apr_2.jpg)
 
    <<!-- 一行 3 張圖片並排 -->
-    ![圖1](/image/2025_recap/apr_1.jpg) ![圖2](/image/2025_recap/apr_2.jpg) ![圖3](/image/2025_recap/apr_3.jpg)
+    ![圖1](../image/2025_recap/apr_1.jpg) ![圖2](../image/2025_recap/apr_2.jpg) ![圖3](../image/2025_recap/apr_3.jpg)
     ──────
   ### 🌟 方式 2：使用網格 HTML 容器語法
 
@@ -17,16 +17,16 @@
   ####   一行 2 張圖片：
 
     <div class="img-grid-2">
-      <img src="/image/2025_recap/apr_1.jpg" alt="基隆風景" />
-      <img src="/image/2025_recap/apr_2.jpg" alt="九份芋圓" />
+      <img src="../image/2025_recap/apr_1.jpg" alt="基隆風景" />
+      <img src="../image/2025_recap/apr_2.jpg" alt="九份芋圓" />
     </div>
 
   ####   一行 3 張圖片：
 
     <div class="img-grid-3">
-      <img src="/image/2025_recap/apr_1.jpg" alt="圖1" />
-      <img src="/image/2025_recap/apr_2.jpg" alt="圖2" />
-      <img src="/image/2025_recap/apr_3.jpg" alt="圖3" />
+      <img src="../image/2025_recap/apr_1.jpg" alt="圖1" />
+      <img src="../image/2025_recap/apr_2.jpg" alt="圖2" />
+      <img src="../image/2025_recap/apr_3.jpg" alt="圖3" />
     </div>
     ──────
   ### ✨ 排版視覺優化說明：

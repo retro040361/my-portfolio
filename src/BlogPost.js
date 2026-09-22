@@ -2,8 +2,62 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion'; // 引入 framer-motion
 import ReactMarkdown from 'react-markdown'; // 引入 react-markdown 來解析 md 內容
+import rehypeRaw from 'rehype-raw'; // 引入 rehype-raw 解析原始 HTML 標籤
 import blogPosts from './data/posts-metadata.json'; // 引入自動生成的文章元資料
 import './App.css'; 
+
+// 解析 Markdown 中的圖片與影音媒體路徑（相容 /image/...、../image/...、./image/... 與外部 URL）
+const resolveMediaUrl = (src) => {
+  if (!src) return src;
+  if (/^(https?:|data:|blob:|\/\/)/i.test(src)) {
+    return src;
+  }
+  let cleanPath = src.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\/+/, '');
+  if (cleanPath.startsWith('public/')) {
+    cleanPath = cleanPath.slice(7);
+  }
+  const publicUrl = process.env.PUBLIC_URL || '';
+  return `${publicUrl}/${cleanPath}`;
+};
+
+// 影音播放器組件 (含檔案遺失 404 / 載入失敗之友善提示)
+const VideoPlayer = ({ src, alt, ...props }) => {
+  const [hasError, setHasError] = useState(false);
+  const finalSrc = resolveMediaUrl(src);
+
+  if (hasError) {
+    return (
+      <div className="markdown-media-error" style={{
+        padding: '14px 18px',
+        margin: '16px 0',
+        borderRadius: '12px',
+        background: 'rgba(239, 68, 68, 0.12)',
+        border: '1px solid rgba(239, 68, 68, 0.3)',
+        color: 'var(--text-primary)',
+        fontSize: '0.88rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        <span>⚠️ 影片檔案未找到或無法載入（檔名路徑：<code>{src}</code>）</span>
+      </div>
+    );
+  }
+
+  return (
+    <video
+      src={finalSrc}
+      controls
+      playsInline
+      preload="metadata"
+      className="markdown-video"
+      onError={() => setHasError(true)}
+      {...props}
+    >
+      {alt || "您的瀏覽器不支援播放此影片。"}
+    </video>
+  );
+}; 
 
 // 定義動畫效果
 const containerVariants = {
@@ -55,7 +109,39 @@ const markdownComponents = {
   code: ({ children, ...props }) => <code className="markdown-code" {...props}>{children}</code>,
   hr: (props) => <hr className="markdown-hr" {...props} />,
   blockquote: ({ children, ...props }) => <blockquote className="markdown-blockquote" {...props}>{children}</blockquote>,
-  img: ({ src, alt, ...props }) => <img src={src} alt={alt || "文章圖片"} className="markdown-img" loading="lazy" decoding="async" {...props} />,
+  img: ({ src, alt, ...props }) => {
+    const finalSrc = resolveMediaUrl(src);
+    const isVideo = src && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
+
+    if (isVideo) {
+      return <VideoPlayer src={src} alt={alt} {...props} />;
+    }
+    return <img src={finalSrc} alt={alt || "文章圖片"} className="markdown-img" loading="lazy" decoding="async" {...props} />;
+  },
+  video: ({ src, children, ...props }) => {
+    return <VideoPlayer src={src} {...props}>{children}</VideoPlayer>;
+  },
+  a: ({ href, children, ...props }) => {
+    if (href) {
+      // eslint-disable-next-line no-useless-escape
+      const ytMatch = href.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        return (
+          <div className="markdown-video-wrapper">
+            <iframe
+              src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="markdown-iframe"
+            />
+          </div>
+        );
+      }
+    }
+    return <a href={href} target="_blank" rel="noreferrer" {...props}>{children}</a>;
+  },
 };
 
 const BlogPost = () => {
@@ -76,7 +162,7 @@ const BlogPost = () => {
     setError(false);
 
     // 從 public/posts 載入 md 檔案
-    fetch(post.markdownFile)
+    fetch(`${process.env.PUBLIC_URL || ''}${post.markdownFile}`)
       .then(res => {
         if (!res.ok) {
           throw new Error("無法讀取文章檔案");
@@ -135,12 +221,29 @@ const BlogPost = () => {
       animate="visible"
       variants={containerVariants} // 套用容器動畫
     >
+      <motion.div 
+        variants={itemVariants} 
+        className="blog-post-hero-banner"
+        style={{ 
+          background: post.category === 'tech' 
+            ? 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3b82f6 100%)' 
+            : 'linear-gradient(135deg, #e03131 0%, #f06595 50%, #ffc9c9 100%)' 
+        }}
+      >
+        <span className="modal-emoji">{post.category === 'tech' ? '💻' : '🌿'}</span>
+      </motion.div>
+
       <motion.div variants={itemVariants} className="post-header-meta">
-        <p className="post-meta">發布於 {post.date}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+          <span className={`post-category-tag ${post.category}`}>
+            {post.category === 'tech' ? '💻 技術分享' : '🌿 生活隨筆'}
+          </span>
+          <p className="post-meta" style={{ margin: 0 }}>發布於 {post.date}</p>
+        </div>
       </motion.div>
 
       <div className="post-content">
-        <ReactMarkdown components={markdownComponents}>
+        <ReactMarkdown rehypePlugins={[rehypeRaw]} components={markdownComponents}>
           {content}
         </ReactMarkdown>
       </div>

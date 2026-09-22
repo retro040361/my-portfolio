@@ -30,11 +30,13 @@ const itemVariants = {
 // 進度條動畫
 const progressVariants = (percent) => ({
   hidden: { width: 0 },
-  visible: { 
+  visible: {
     width: `${percent}%`,
     transition: { duration: 1, ease: 'easeOut', delay: 0.2 }
   }
 });
+
+const getImageUrl = (path) => (path && path.startsWith('/') ? `${process.env.PUBLIC_URL}${path}` : path);
 
 const Playground = () => {
   const [activeTab, setActiveTab] = useState('games'); // 'games' | 'travels' | 'concerts'
@@ -51,7 +53,7 @@ const Playground = () => {
       platform: 'PC',
       emoji: '⚔️',
       percent: 10,
-      image: '/image/elden-ring-a.webp', 
+      image: '/image/elden-ring-a.webp',
       gradient: 'linear-gradient(135deg, #ffe066 0%, #d9480f 100%)',
       comment: '誒抱歉不要打我 大哥我錯ㄌ',
       detailedThoughts: '這款遊戲是我心目中的神作。法環結合了魂系列硬核的戰鬥機制與極度自由的開放世界。第一次擊敗女武神瑪蓮妮亞的時候手都在抖，那是幾十個小時受苦與練習的成果。它的地圖設計極具垂直深度（像是地底的希芙拉河），每一次探索都是新的驚喜！全成就白金是對這部偉大作品的最佳致敬。'
@@ -157,7 +159,7 @@ const Playground = () => {
       period: '2026.02',
       tag: '滑雪',
       emoji: '🍣',
-      image: '/image/snow_2026.jpg', 
+      image: '/image/snow_2026.jpg',
       gradient: 'linear-gradient(135deg, #ffc9c9 0%, #e03131 100%)',
       memory: '跟龍蝦實驗室同學出國滑雪！也是偶第一次滑雪。',
       detailedThoughts: '這是我人生中第一次滑雪，在白馬翠綠與銀白交織的山谷間，體驗從雪道滑下的速度與激情。雖然摔倒了無數次，但當學會控板的那一刻，滿足感無可替代！晚上回到東京，和同學在居酒屋乾杯、探索秋葉原的二次元文化，充滿了溫馨與歡笑。'
@@ -168,7 +170,7 @@ const Playground = () => {
       period: '2025.11',
       tag: '楓葉',
       emoji: '🍁',
-      image: '/image/IMG_3062.JPG', 
+      image: '/image/IMG_3062.JPG',
       gradient: 'linear-gradient(135deg, #ffc9c9 0%, #e03131 100%)',
       memory: '第一次帶家人出國玩！',
       detailedThoughts: '京都與關西的秋季賞楓之旅！我們去的時候剛好碰上楓葉見頃，嵐山與東福寺兩側的紅葉林美不勝收。在清水寺體驗了夜間參拜，看著古老寺廟在紅葉與射燈下的神聖氛圍。家人玩得非常開心，雖然每天走路步數破兩萬，但能一起創造這樣的回憶，一切都無比值得！'
@@ -179,7 +181,7 @@ const Playground = () => {
       period: '2024.12',
       tag: '獨旅',
       emoji: '🍣',
-      image: '/image/IMG_0324.JPG', 
+      image: '/image/IMG_0324.JPG',
       gradient: 'linear-gradient(135deg, #ffc9c9 0%, #e03131 100%)',
       memory: '第一次出國，而且還是自己出國！',
       detailedThoughts: '看了看自己剛好有假可以請，趁著進成功嶺之前感覺出國最後一舞，也算是人生中第一次出國ㄅ。獨自一人背著相機漫步在冬日的京都街頭，雖然天氣寒冷，但心境非常自由與放鬆。在小巷弄內尋找美味的拉麵店、走過伏見稻荷千本鳥居，這場獨旅讓我學會了和自己對話。'
@@ -188,6 +190,17 @@ const Playground = () => {
 
   // 演唱會足跡資料
   const concerts = [
+    {
+      type: 'concert',
+      artist: 'back number : Grateful Yesterdays Tour 2026 asia in Taipei',
+      period: '2026.08.22',
+      venue: '台北小巨蛋',
+      emoji: '🎤',
+      image: '/image/back_number_concert_2026.jpg',
+      gradient: 'linear-gradient(135deg, #fa5252 0%, #be4bdb 100%)',
+      memory: 'Back Number的第一次海外演唱會get!',
+      detailedThoughts: '高雄世運場地巨大，當九兔登台那一刻，全場五萬人的萬花筒手環同步亮起，粉紅與杏色的燈海美到令人屏息！成員們的刀群舞與實力開麥，配合一連串熱門金曲聯唱，全場氣氛燃到最高點。能在家鄉看到她們的專場，真的是圓夢的夜晚！'
+    },
     {
       type: 'concert',
       artist: 'TWICE : THIS IS FOR',
@@ -207,7 +220,7 @@ const Playground = () => {
       emoji: '🎤',
       image: '/image/yuuri_2025.jpg',
       gradient: 'linear-gradient(135deg, #fa5252 0%, #be4bdb 100%)',
-      memory: '你說得對，這就是乾燥花。優里獨特的沙啞嗓音真的太有渲染力！',
+      memory: '你說得對，這就是乾燥花。你的臉和聲音還有笨拙的地方 全部全部我都從不曾厭倦 就像被風乾後褪色了不再鮮豔的乾花 總有一天我們也會褪去了顏色',
       detailedThoughts: '優里（Yuuri）的台北專場簡直是大型催淚現場。現場唱功比錄音室版本還要狂暴，那種帶著撕裂感的唱腔在《乾燥花》、《Betelgeuse》響起時，讓全小巨蛋都起雞皮疙瘩。他的互動也非常親切，用中文和台下歌迷對話，整場演唱會真誠度滿分！'
     },
     {
@@ -292,25 +305,25 @@ const Playground = () => {
     >
       {/* 頁面標題 */}
       <motion.div className="playground-header" variants={itemVariants}>
-        <h1>Playground</h1>
-        <p className="playground-subtitle">「工作寫扣，生活玩樂」── 這裡記錄了我在代碼之外的生活足跡與冒險紀錄。點擊卡片看詳細內容！</p>
+        <h1>Retro's Life Dashboard</h1>
+        <p className="playground-subtitle">紀錄阿浩的快樂日子0.0</p>
       </motion.div>
 
       {/* 分類切換 Tab 按鈕列 (Option 1) */}
       <motion.div className="blog-filter-buttons playground-tabs" variants={itemVariants}>
-        <button 
+        <button
           className={`filter-btn ${activeTab === 'games' ? 'active' : ''}`}
           onClick={() => setActiveTab('games')}
         >
           🎮 Game
         </button>
-        <button 
+        <button
           className={`filter-btn ${activeTab === 'travels' ? 'active' : ''}`}
           onClick={() => setActiveTab('travels')}
         >
           ✈️ Travel
         </button>
-        <button 
+        <button
           className={`filter-btn ${activeTab === 'concerts' ? 'active' : ''}`}
           onClick={() => setActiveTab('concerts')}
         >
@@ -319,9 +332,9 @@ const Playground = () => {
       </motion.div>
 
       {/* 網格卡片佈局 (Option 1 - 統一為 3-column Grid) */}
-      <motion.div 
+      <motion.div
         key={activeTab}
-        className="projects-grid playground-grid-layout" 
+        className="projects-grid playground-grid-layout"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -331,59 +344,59 @@ const Playground = () => {
             key={item.title || item.country || item.artist}
             className="project-card-wrapper"
             variants={itemVariants}
-            whileHover={{ y: -6, transition: { duration: 0.2 } }}
+            whileHover={{ y: -6, transition: { duration: 0.15, ease: 'easeOut' } }}
             onClick={() => setSelectedItem(item)}
           >
-              <div className="project-card-glass playground-interactive-card">
-                {/* 卡片頂部封面 */}
-                <div className="project-banner" style={{ background: item.gradient }}>
-                  {item.image ? (
-                    <img src={item.image} alt={item.title || item.country || item.artist} className="card-banner-img" />
-                  ) : (
-                    <span className="project-emoji">{item.emoji}</span>
-                  )}
-                  {item.platform && <span className="card-platform-tag">{item.platform}</span>}
-                  {item.period && !item.platform && <span className="card-date-tag">{item.period}</span>}
-                </div>
-                
-                <div className="project-content" style={{ padding: '24px' }}>
-                  <h2 className="project-title" style={{ fontSize: '1.25rem', marginBottom: '8px' }}>
-                    {item.title || item.country || item.artist}
-                  </h2>
-                  
-                  {/* 特色元資料 (評分/進度/標籤) */}
-                  <div className="card-meta" style={{ marginBottom: '12px' }}>
-                    {item.rating ? (
-                      <div className="card-rating">{item.rating}</div>
-                    ) : item.tag ? (
-                      <span className="travel-tag-pill">{item.tag}</span>
-                    ) : item.venue ? (
-                      <span className="travel-tag-pill" style={{ backgroundColor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', border: '1px solid rgba(168, 85, 247, 0.25)' }}>
-                        📍 {item.venue}
-                      </span>
-                    ) : null}
-                    
-                    {item.status && <div className="card-status">{item.status}</div>}
-                  </div>
-
-                  {/* 遊戲進度條 */}
-                  {item.type === 'game' && (
-                    <div className="progress-bar-wrapper">
-                      <motion.div 
-                        className="progress-bar-fill" 
-                        variants={progressVariants(item.percent)}
-                        initial="hidden"
-                        animate="visible"
-                        style={{ background: item.gradient }}
-                      />
-                    </div>
-                  )}
-
-                  <p className="project-desc" style={{ fontSize: '0.88rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', minHeight: '2.8em' }}>
-                    {item.comment || item.memory}
-                  </p>
-                </div>
+            <div className="project-card-glass playground-interactive-card">
+              {/* 卡片頂部封面 */}
+              <div className="project-banner" style={{ background: item.gradient }}>
+                {item.image ? (
+                  <img src={getImageUrl(item.image)} alt={item.title || item.country || item.artist} className="card-banner-img" />
+                ) : (
+                  <span className="project-emoji">{item.emoji}</span>
+                )}
+                {item.platform && <span className="card-platform-tag">{item.platform}</span>}
+                {item.period && !item.platform && <span className="card-date-tag">{item.period}</span>}
               </div>
+
+              <div className="project-content" style={{ padding: '24px' }}>
+                <h2 className="project-title" style={{ fontSize: '1.25rem', marginBottom: '8px' }}>
+                  {item.title || item.country || item.artist}
+                </h2>
+
+                {/* 特色元資料 (評分/進度/標籤) */}
+                <div className="card-meta" style={{ marginBottom: '12px' }}>
+                  {item.rating ? (
+                    <div className="card-rating">{item.rating}</div>
+                  ) : item.tag ? (
+                    <span className="travel-tag-pill">{item.tag}</span>
+                  ) : item.venue ? (
+                    <span className="travel-tag-pill" style={{ backgroundColor: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', border: '1px solid rgba(168, 85, 247, 0.25)' }}>
+                      📍 {item.venue}
+                    </span>
+                  ) : null}
+
+                  {item.status && <div className="card-status">{item.status}</div>}
+                </div>
+
+                {/* 遊戲進度條 */}
+                {item.type === 'game' && (
+                  <div className="progress-bar-wrapper">
+                    <motion.div
+                      className="progress-bar-fill"
+                      variants={progressVariants(item.percent)}
+                      initial="hidden"
+                      animate="visible"
+                      style={{ background: item.gradient }}
+                    />
+                  </div>
+                )}
+
+                <p className="project-desc" style={{ fontSize: '0.88rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', minHeight: '2.8em' }}>
+                  {item.comment || item.memory}
+                </p>
+              </div>
+            </div>
           </motion.div>
         ))}
       </motion.div>
@@ -392,20 +405,13 @@ const Playground = () => {
       <AnimatePresence>
         {selectedItem && (
           <div className="modal-overlay" onClick={() => { setSelectedItem(null); setIsMaximized(false); }}>
-            <motion.div 
-              layout
+            <motion.div
               className={`modal-box retro-window ${isMaximized ? 'is-maximized' : ''}`}
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ 
-                type: 'spring', 
-                damping: 25, 
-                stiffness: 300,
-                layout: { duration: 0.38, ease: [0.16, 1, 0.3, 1] }
-              }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               onClick={(e) => e.stopPropagation()} // 阻止事件冒泡
-              style={{ maxWidth: isMaximized ? '95vw' : '600px', width: '95%' }}
             >
               {/* Option 2 風格：macOS/Linux 交通燈視窗標題列 */}
               <div className="login-window-header" style={{ padding: '10px 16px', background: 'var(--navbar-bg)', borderBottom: '1px solid var(--card-border)' }}>
@@ -429,27 +435,27 @@ const Playground = () => {
               {/* 滾動內容包裝容器（讓 Cover Banner 隨捲動往上滑動消失） */}
               <div className="modal-scroll-body">
                 {/* 頂部橫幅 */}
-                <div className="modal-banner" style={{ height: '180px', minHeight: '180px', background: selectedItem.gradient }}>
+                <div className="modal-banner" style={{ background: selectedItem.gradient }}>
                   {selectedItem.image ? (
-                    <img src={selectedItem.image} alt={selectedItem.title || selectedItem.country} className="modal-banner-img" />
+                    <img src={getImageUrl(selectedItem.image)} alt={selectedItem.title || selectedItem.country} className="modal-banner-img" />
                   ) : (
-                    <span className="modal-emoji" style={{ fontSize: '5rem' }}>{selectedItem.emoji}</span>
+                    <span className="modal-emoji">{selectedItem.emoji}</span>
                   )}
                 </div>
 
                 {/* 內文主體 */}
-                <div className="modal-body" style={{ padding: '24px' }}>
+                <div className="modal-body">
                   <span className="modal-meta-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {selectedItem.platform 
-                      ? `🎮 ${selectedItem.platform}` 
-                      : selectedItem.venue 
-                        ? `🎤 ${selectedItem.venue}` 
+                    {selectedItem.platform
+                      ? `🎮 ${selectedItem.platform}`
+                      : selectedItem.venue
+                        ? `🎤 ${selectedItem.venue}`
                         : `✈️ ${selectedItem.period}`}
                   </span>
                   <h2 className="modal-title" style={{ fontSize: '1.4rem', marginTop: '4px', marginBottom: '8px' }}>
                     {selectedItem.title || selectedItem.country || selectedItem.artist}
                   </h2>
-                  
+
                   <div className="modal-info-row" style={{ marginBottom: '16px' }}>
                     {selectedItem.rating && <span className="modal-rating">{selectedItem.rating}</span>}
                     <span className="modal-status-badge">
@@ -458,7 +464,7 @@ const Playground = () => {
                   </div>
 
                   <div className="modal-divider" style={{ margin: '15px 0' }} />
-                  
+
                   <h4 className="modal-section-title" style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '8px' }}>💭 我的心得與回顧</h4>
                   <p className="modal-detailed-thoughts" style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
                     {selectedItem.detailedThoughts}
