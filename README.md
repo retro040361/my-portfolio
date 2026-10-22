@@ -10,6 +10,7 @@ Retro 的個人網站：自我介紹、專案、部落格，以及遊戲／旅�
 - Motion（Framer Motion）做頁面與元件動畫
 - react-markdown + rehype-raw 渲染部落格文章
 - react-icons 提供 SVG 圖示
+- three.js + React Three Fiber 做 Playground 的 3D 電競房間
 - Create React App 建置
 
 ## 專案結構
@@ -29,6 +30,8 @@ src/
   shared/           共用元件：Markdown 渲染、RetroModal
   styles/ui.css     導覽列、首頁開場動畫、部落格與時間軸等樣式
   styles/dedsec.css Watch Dogs 主題（深色 DedSec / 淺色 ctOS）
+  gear3d/           Playground 的 3D 電競房間（three.js / React Three Fiber）
+  gear/             電競房間的 SVG 備用版（不支援 WebGL 時使用）
 ```
 
 ## 新增文章

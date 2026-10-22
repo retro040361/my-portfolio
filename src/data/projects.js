@@ -32,15 +32,15 @@ export const projectsData = [
     github: null
   },
   {
-    title: "個人網頁與生活儀表板 (my-portfolio)",
+    title: "個人網站 Retro's Space (my-portfolio)",
     emoji: "⚡",
-    desc: "展現個人學經歷、技術棧與生活探險蹤跡的動態網頁。設計融合了極客情懷的開機登入序列與動漫高能量物理特效，呈現高度精緻的個人品牌形象。",
-    tech: ["React", "Framer Motion", "React Router", "Vanilla CSS", "Webpack", "Markdown Parsing"],
+    desc: "就是你現在在看的這個網站。放我的經歷、專案、部落格，還有玩過的遊戲、去過的地方跟看過的演唱會。整體風格參考 Watch Dogs 2 的 DedSec。",
+    tech: ["React", "React Router", "Motion", "react-markdown", "CSS", "GitHub Pages"],
     features: [
-      "復古 Geek 開機序列：模擬 Linux 核心啟動日誌跑正步，配合 CRT 螢幕掃描線與自動打字 GUI 登入框的融合特效。",
-      "五條悟 Hollow Purple 特效：在首頁底部實作白色偏光十字星與不規則 SVG 閃電的高能物理動態震盪效果。",
-      "Playground 橫向輪播：為遊戲庫、旅遊足跡與演唱會紀錄設計支援 CSS Scroll Snap 與滑動按鈕的橫移軌道。",
-      "動態部落格文章分類：支援 Markdown 文章 YAML Frontmatter 解析與一鍵切換類別（技術 / 生活）的流暢 Layout 動畫。"
+      "開場動畫：開機文字跑完之後，噴漆風格的 R 一筆一筆畫出來，再接上 RETRO_OS 的標題條，最後閃一下切回首頁。",
+      "兩套主題：深色是 DedSec（黑底、洋紅和青色、故障字），淺色是 WD1 的 ctOS 系統介面。",
+      "部落格：文章直接寫 Markdown，build 時用腳本掃描產生文章列表，順便抓封面和算閱讀時間；文章頁有目錄、閱讀進度條和上一篇／下一篇。",
+      "Playground：遊戲有進度條跟破關狀態，演唱會照年份排成時間軸，旅行足跡用卡片呈現。"
     ],
     slug: "my-portfolio",
     gradient: "linear-gradient(135deg, #1a0412 0%, #4d0030 100%)",

@@ -1,0 +1,755 @@
+/* ==========================================================================
+   Playground：Setup 分頁的電競房間動畫
+   等角視角的房間剖面；亮暗主題切換開關燈，提示框沿用 DedSec 風格
+   ========================================================================== */
+
+.gear-room {
+  max-width: 1100px;
+  margin: 10px auto 0;
+  text-align: left;
+}
+
+.gear-stage {
+  position: relative;
+  border: 1px solid var(--card-border);
+  background: #08080d;
+  overflow: visible;
+}
+
+.gear-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- 開燈 / 關燈：跟著網站主題切換 ----------
+   暗色主題：關燈，只剩螢幕、RGB 燈條、檯燈和立燈，窗外是夜晚
+   亮色主題：開燈，牆面地板家具都變亮，窗外是白天、地板有陽光 */
+.room-day {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.gear-svg polygon,
+.gear-svg ellipse,
+.gear-svg circle,
+.room-window-frame,
+.room-window-sill,
+.room-skyline,
+.lamp-glow,
+.monitor-glow,
+.neon-sign {
+  transition: fill 0.6s ease, stroke 0.6s ease, opacity 0.6s ease;
+}
+
+.gear-stage {
+  transition: background-color 0.6s ease;
+}
+
+/* 窗外的日月：先讓舊的落到城市剪影後面，再讓新的升起
+   （transition 取「切換後」狀態的設定，所以落下不延遲、升起延遲 0.5 秒） */
+.room-night {
+  transition: opacity 0.6s ease;
+}
+
+.room-moon,
+.room-sun {
+  transition: transform 0.8s ease-out 0.5s;
+}
+
+.room-sun {
+  transform: translateY(110px);
+  transition: transform 0.7s ease-in;
+}
+
+[data-theme='light'] .room-moon {
+  transform: translateY(110px);
+  transition: transform 0.7s ease-in;
+}
+
+[data-theme='light'] .room-sun {
+  transform: translateY(0);
+  transition: transform 0.8s ease-out 0.5s;
+}
+
+[data-theme='light'] .room-night { opacity: 0; }
+
+/* 變暗時星星等黃昏過了才出現 */
+[data-theme='dark'] .room-night {
+  transition: opacity 0.6s ease 1s;
+}
+
+/* 過場天色：白天 → 黃昏 → 夜晚、夜晚 → 清晨 → 白天
+   疊在天空上淡入、停留、再淡出，底下的天空這段時間已經換成新的 */
+.sky-transition {
+  opacity: 0;
+  animation: skyTransition 1.9s ease-in-out forwards;
+}
+
+@keyframes skyTransition {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  62% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+[data-theme='light'] .gear-stage { background: #e7e2da; }
+[data-theme='light'] .room-day { opacity: 1; }
+[data-theme='light'] .room-window-frame { stroke: #f6f4f0; }
+[data-theme='light'] .room-window-sill { fill: #f6f4f0; }
+[data-theme='light'] .room-skyline { fill: #8fa3b5; }
+
+/* 地板、牆 */
+[data-theme='light'] .iso-floor-top { fill: #c8a986; }
+[data-theme='light'] .iso-floor-left { fill: #8c6f52; }
+[data-theme='light'] .iso-floor-right { fill: #a3845f; }
+[data-theme='light'] .iso-wall-l-right { fill: #e9e4ee; }
+[data-theme='light'] .iso-wall-l-left { fill: #d8d2de; }
+[data-theme='light'] .iso-wall-l-top { fill: #cfc8d6; }
+[data-theme='light'] .iso-wall-r-left { fill: #f2eee8; }
+[data-theme='light'] .iso-wall-r-right { fill: #ddd7cf; }
+[data-theme='light'] .iso-wall-r-top { fill: #d2ccc4; }
+[data-theme='light'] .iso-rug { fill: #ddd2ea; }
+
+/* 家具 */
+[data-theme='light'] .iso-desk-top { fill: #f2efe9; }
+[data-theme='light'] .iso-desk-left { fill: #d9d5cd; }
+[data-theme='light'] .iso-desk-right { fill: #e6e2db; }
+[data-theme='light'] .iso-desk-leg-top,
+[data-theme='light'] .iso-desk-leg-left,
+[data-theme='light'] .iso-desk-leg-right { fill: #c9c4ba; }
+[data-theme='light'] .iso-cabinet-top { fill: #ece7df; }
+[data-theme='light'] .iso-cabinet-left { fill: #d3cdc3; }
+[data-theme='light'] .iso-cabinet-right { fill: #e0dad1; }
+[data-theme='light'] .iso-shelf-top { fill: #c9a57c; }
+[data-theme='light'] .iso-shelf-left { fill: #a5845e; }
+[data-theme='light'] .iso-shelf-right { fill: #b8946b; }
+[data-theme='light'] .iso-bedhead-top,
+[data-theme='light'] .iso-bedframe-top { fill: #c9a57c; }
+[data-theme='light'] .iso-bedhead-left,
+[data-theme='light'] .iso-bedframe-left { fill: #a5845e; }
+[data-theme='light'] .iso-bedhead-right,
+[data-theme='light'] .iso-bedframe-right { fill: #b8946b; }
+[data-theme='light'] .iso-mattress-top { fill: #eef0f5; }
+[data-theme='light'] .iso-mattress-left { fill: #cfd3dd; }
+[data-theme='light'] .iso-mattress-right { fill: #dfe2ea; }
+[data-theme='light'] .iso-blanket-top { fill: #9a7fd6; }
+[data-theme='light'] .iso-blanket-left { fill: #7c61b8; }
+[data-theme='light'] .iso-blanket-right { fill: #8a6fc6; }
+[data-theme='light'] .iso-pillow-top { fill: #ffffff; }
+[data-theme='light'] .iso-sofa-top { fill: #9d93bd; }
+[data-theme='light'] .iso-sofa-left { fill: #7d739e; }
+[data-theme='light'] .iso-sofa-right { fill: #8c82ad; }
+[data-theme='light'] .iso-table-top { fill: #e6e0d6; }
+[data-theme='light'] .iso-table-side { fill: #cfc8bc; }
+[data-theme='light'] .iso-lampshade { fill: #f6efe0; }
+
+/* 燈光：開燈後螢幕光暈和檯燈變弱 */
+[data-theme='light'] .monitor-glow { opacity: 0.25; animation: none; }
+[data-theme='light'] .lamp-glow { opacity: 0.3; }
+[data-theme='light'] .neon-sign { opacity: 0.85; }
+[data-theme='light'] .led-strip { opacity: 0.6; }
+
+/* ---------- 3D 版（three.js） ---------- */
+.gear-stage-3d,
+.gear-loading {
+  aspect-ratio: 1 / 0.92;
+  width: 100%;
+}
+
+.gear-stage-3d canvas {
+  display: block;
+  touch-action: pan-y;
+}
+
+/* shader 編譯完才淡入，避免一打開分頁卡一下 */
+.gear-stage-3d > div:not(.gear-stage-loading) {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.gear-stage-3d.is-ready > div:not(.gear-stage-loading) {
+  opacity: 1;
+}
+
+.gear-stage-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.gear-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
+  max-width: 1100px;
+  margin: 10px auto 0;
+}
+
+.gear-hint {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.gear-tooltip-3d {
+  white-space: normal;
+}
+
+/* ---------- 可互動的物品 ---------- */
+.gear-item {
+  cursor: pointer;
+  outline: none;
+}
+
+.gear-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.gear-art {
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.gear-stage.has-active .gear-item:not(.is-active) .gear-art {
+  opacity: 0.45;
+}
+
+.gear-item.is-active .gear-art {
+  filter: drop-shadow(0 0 1.5px #ffffff) drop-shadow(0 0 8px #00e5ff);
+}
+
+.gear-item.is-active .gear-hit {
+  stroke: #00e5ff;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  animation: gearDash 0.8s linear infinite;
+}
+
+@keyframes gearDash {
+  to { stroke-dashoffset: -20; }
+}
+
+/* ---------- 提示框 ---------- */
+.gear-tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 12px));
+  min-width: 170px;
+  max-width: 260px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  background: rgba(7, 7, 10, 0.94);
+  color: #f4f4f6;
+  border: 1px solid #00e5ff;
+  box-shadow: 4px 4px 0 #ff1f8f;
+}
+
+.gear-tooltip.align-left {
+  transform: translate(-12%, calc(-100% - 12px));
+}
+
+.gear-tooltip.align-right {
+  transform: translate(-88%, calc(-100% - 12px));
+}
+
+.gear-tooltip-category {
+  font-size: 0.7rem;
+  color: #00e5ff;
+  letter-spacing: 1px;
+}
+
+.gear-tooltip-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.gear-tooltip-spec {
+  font-size: 0.75rem;
+  color: #c4c4cf;
+}
+
+/* 亮色主題：白底深字，外框與位移陰影都用淺色主題的 ctOS 藍（和其他頁面一致，不用深色主題的粉紅） */
+[data-theme='light'] .gear-tooltip {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0b0d10;
+  border-color: var(--accent);
+  box-shadow: 4px 4px 0 var(--accent);
+}
+
+[data-theme='light'] .gear-tooltip-category {
+  color: #0091b3;
+}
+
+[data-theme='light'] .gear-tooltip-spec {
+  color: #5d6570;
+}
+
+/* ---------- 設備清單 ---------- */
+.gear-list {
+  margin-top: 22px;
+}
+
+.gear-list-cmd {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin: 0 0 10px;
+}
+
+.gear-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.gear-list-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  color: var(--text-primary);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.gear-list-item:hover,
+.gear-list-item.is-active {
+  border-color: var(--accent);
+  transform: translateX(3px);
+}
+
+.gear-list-category {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.gear-list-name {
+  font-weight: 600;
+}
+
+.gear-list-specs {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* ---------- 場景動畫 ---------- */
+.fan-spin {
+  animation: fanSpin 0.9s linear infinite;
+}
+
+@keyframes fanSpin {
+  to { transform: rotate(360deg); }
+}
+
+.rgb-ring,
+.rgb-cycle,
+.led-strip {
+  animation: rgbCycle 6s linear infinite;
+}
+
+@keyframes rgbCycle {
+  to { filter: hue-rotate(360deg); }
+}
+
+.neon-sign {
+  animation: neonFlicker 5s steps(1) infinite;
+}
+
+@keyframes neonFlicker {
+  0%, 18%, 22%, 60%, 100% { opacity: 1; }
+  19%, 21%, 61% { opacity: 0.35; }
+}
+
+.monitor-glow {
+  animation: monitorGlow 4s ease-in-out infinite;
+}
+
+@keyframes monitorGlow {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* 程式碼一行一行打出來 */
+.code-line {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: typeLine 6s steps(12) infinite;
+}
+
+@keyframes typeLine {
+  0% { transform: scaleX(0); }
+  9% { transform: scaleX(1); }
+  92% { transform: scaleX(1); opacity: 0.85; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+
+.caret,
+.blink-slow {
+  animation: logoBlink 1s steps(1) infinite;
+}
+
+.blink-slow {
+  animation-duration: 2.4s;
+}
+
+/* ---------- 右螢幕：艾爾登法環打王（第三人稱，10 秒循環） ----------
+   0–10%   瑪爾基特舉起聖錘 → 砸地炸出金光、畫面晃動；褪色者往右翻滾
+   24%     第一刀（血條剩 2/3）
+   31–34%  第二次砸地；褪色者往左翻滾
+   50%     第二刀（剩 1/3）
+   60%     第三刀，血條歸零
+   63–72%  王化成金色光點消失，68% 起顯示 ENEMY FELLED、盧恩增加
+   93–100% 畫面重置，下一輪 */
+.er-cam,
+.er-hammer,
+.er-burst,
+.er-boss,
+.er-player,
+.er-sword,
+.er-slash,
+.er-boss-hp,
+.er-boss-ui,
+.er-dmg,
+.er-felled,
+.er-stamina,
+.er-runes-0,
+.er-runes-won,
+.er-dust-dot {
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+}
+
+.er-hammer {
+  animation-name: erHammer;
+  animation-timing-function: ease-in;
+}
+
+@keyframes erHammer {
+  0% { transform: rotate(0deg); }
+  7% { transform: rotate(40deg); }
+  10% { transform: rotate(-45deg); }
+  16% { transform: rotate(-45deg); }
+  22% { transform: rotate(0deg); }
+  31% { transform: rotate(40deg); }
+  34% { transform: rotate(-45deg); }
+  40% { transform: rotate(-45deg); }
+  46%, 100% { transform: rotate(0deg); }
+}
+
+.er-burst {
+  opacity: 0;
+  animation-name: erBurst;
+  animation-timing-function: ease-out;
+}
+
+@keyframes erBurst {
+  0%, 9.5% { opacity: 0; transform: scale(0.3); }
+  10% { opacity: 1; transform: scale(0.8); }
+  18% { opacity: 0; transform: scale(1.5); }
+  33.5% { opacity: 0; transform: scale(0.3); }
+  34% { opacity: 1; transform: scale(0.8); }
+  42%, 100% { opacity: 0; transform: scale(1.5); }
+}
+
+.er-cam {
+  animation-name: erCam;
+}
+
+@keyframes erCam {
+  0%, 9.9%, 12.5%, 33.9%, 36.5%, 100% { transform: translate(0, 0); }
+  10.5%, 34.5% { transform: translate(-2px, 1.5px); }
+  11.2%, 35.2% { transform: translate(2px, -1px); }
+  11.8%, 35.8% { transform: translate(-1px, 1px); }
+}
+
+/* 王：被砍中時輪廓發金光；血條歸零後化成光點消失，最後重新出現 */
+.er-boss {
+  animation-name: erBoss;
+}
+
+@keyframes erBoss {
+  0%, 23.5%, 26%, 49.5%, 52%, 59.5% { opacity: 1; transform: translate(0, 0); filter: none; }
+  24%, 50%, 60% { opacity: 1; transform: translate(0, -2px) scale(1); filter: drop-shadow(0 0 2px #fff4d6) drop-shadow(0 0 5px #ffd86b); }
+  63% { opacity: 1; transform: translate(0, 0); filter: drop-shadow(0 0 3px #ffd86b); }
+  72% { opacity: 0; transform: translate(0, -6px); filter: drop-shadow(0 0 6px #ffd86b); }
+  95% { opacity: 0; transform: translate(0, 0); filter: none; }
+  100% { opacity: 1; transform: translate(0, 0); filter: none; }
+}
+
+.er-dust-dot {
+  opacity: 0;
+  animation-name: erDust;
+  animation-timing-function: ease-out;
+}
+
+@keyframes erDust {
+  0%, 62% { opacity: 0; transform: translate(0, 0); }
+  65% { opacity: 1; }
+  80% { opacity: 0; transform: translate(3px, -40px); }
+  100% { opacity: 0; transform: translate(3px, -40px); }
+}
+
+.er-player {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation-name: erPlayer;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes erPlayer {
+  0%, 7% { transform: translate(0, 0) scale(1); }
+  11% { transform: translate(34px, 3px) scale(0.94); }
+  18% { transform: translate(0, 0) scale(1); }
+  23% { transform: translate(0, -4px) scale(0.92); }
+  24% { transform: translate(-2px, -7px) scale(0.9); }
+  28% { transform: translate(0, 0) scale(1); }
+  31% { transform: translate(0, 0) scale(1); }
+  35% { transform: translate(-34px, 3px) scale(0.94); }
+  42% { transform: translate(0, 0) scale(1); }
+  49% { transform: translate(0, -4px) scale(0.92); }
+  50% { transform: translate(2px, -7px) scale(0.9); }
+  54% { transform: translate(0, -2px) scale(0.96); }
+  59% { transform: translate(0, -4px) scale(0.92); }
+  60% { transform: translate(-1px, -7px) scale(0.9); }
+  66%, 100% { transform: translate(0, 0) scale(1); }
+}
+
+.er-sword {
+  animation-name: erSword;
+}
+
+@keyframes erSword {
+  0%, 22%, 27%, 48%, 53%, 58%, 63%, 100% { transform: rotate(0deg); }
+  24%, 50%, 60% { transform: rotate(-150deg); }
+}
+
+.er-slash {
+  opacity: 0;
+  animation-name: erSlash;
+}
+
+@keyframes erSlash {
+  0%, 23.5%, 26.5%, 49.5%, 52.5%, 59.5%, 62.5%, 100% { opacity: 0; }
+  24%, 50%, 60% { opacity: 1; }
+}
+
+.er-boss-hp {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation-name: erBossHp;
+}
+
+@keyframes erBossHp {
+  0%, 24% { transform: scaleX(1); }
+  25.5%, 50% { transform: scaleX(0.66); }
+  51.5%, 60% { transform: scaleX(0.33); }
+  61.5%, 96% { transform: scaleX(0); }
+  98%, 100% { transform: scaleX(1); }
+}
+
+.er-dmg {
+  opacity: 0;
+  animation-name: erDmg1;
+}
+
+.er-dmg-2 { animation-name: erDmg2; }
+.er-dmg-3 { animation-name: erDmg3; }
+
+@keyframes erDmg1 {
+  0%, 24.5% { opacity: 0; }
+  25%, 46% { opacity: 1; }
+  48%, 100% { opacity: 0; }
+}
+
+@keyframes erDmg2 {
+  0%, 50.5% { opacity: 0; }
+  51%, 58% { opacity: 1; }
+  59%, 100% { opacity: 0; }
+}
+
+@keyframes erDmg3 {
+  0%, 60.5% { opacity: 0; }
+  61%, 64% { opacity: 1; }
+  66%, 100% { opacity: 0; }
+}
+
+.er-boss-ui {
+  animation-name: erBossUi;
+}
+
+@keyframes erBossUi {
+  0%, 64% { opacity: 1; }
+  68%, 96% { opacity: 0; }
+  98%, 100% { opacity: 1; }
+}
+
+.er-felled {
+  opacity: 0;
+  animation-name: erFelled;
+  animation-timing-function: ease-out;
+}
+
+@keyframes erFelled {
+  0%, 67% { opacity: 0; }
+  71%, 88% { opacity: 1; }
+  93%, 100% { opacity: 0; }
+}
+
+.er-runes-won {
+  opacity: 0;
+  animation-name: erRunesWon;
+}
+
+.er-runes-0 {
+  animation-name: erRunes0;
+}
+
+@keyframes erRunesWon {
+  0%, 71% { opacity: 0; }
+  72%, 96% { opacity: 1; }
+  97%, 100% { opacity: 0; }
+}
+
+@keyframes erRunes0 {
+  0%, 71% { opacity: 1; }
+  72%, 96% { opacity: 0; }
+  97%, 100% { opacity: 1; }
+}
+
+.er-stamina {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation-name: erStamina;
+}
+
+@keyframes erStamina {
+  0%, 8% { transform: scaleX(1); }
+  12% { transform: scaleX(0.6); }
+  20% { transform: scaleX(1); }
+  25% { transform: scaleX(0.7); }
+  33% { transform: scaleX(1); }
+  36% { transform: scaleX(0.6); }
+  44% { transform: scaleX(1); }
+  51% { transform: scaleX(0.7); }
+  61% { transform: scaleX(0.45); }
+  75%, 100% { transform: scaleX(1); }
+}
+
+.gpu-logo {
+  animation: gpuGlow 3s ease-in-out infinite;
+}
+
+@keyframes gpuGlow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* 打字：左右手輪流敲、頭微微晃 */
+.typist-arm-left { animation: typeTap 0.28s ease-in-out infinite alternate; }
+.typist-arm-right { animation: typeTap 0.28s ease-in-out infinite alternate-reverse; }
+
+@keyframes typeTap {
+  from { transform: translateY(0); }
+  to { transform: translateY(2.5px); }
+}
+
+/* 人：大約一半時間在寫程式，一半時間拿起手把打遊戲（16 秒循環） */
+.person-head {
+  animation: headBob 2.6s ease-in-out infinite;
+}
+
+@keyframes headBob {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0.8px, 0.8px); }
+}
+
+.pose-type,
+.desk-controller {
+  animation: poseType 16s steps(1) infinite;
+}
+
+.pose-play {
+  opacity: 0;
+  animation: posePlay 16s steps(1) infinite;
+}
+
+@keyframes poseType {
+  0% { opacity: 1; }
+  55% { opacity: 0; }
+  95% { opacity: 1; }
+}
+
+@keyframes posePlay {
+  0% { opacity: 0; }
+  55% { opacity: 1; }
+  95% { opacity: 0; }
+}
+
+/* 拿著手把時手會快速按鍵 */
+.held-controller {
+  animation: holdShake 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes holdShake {
+  from { transform: translate(0, 0); }
+  to { transform: translate(0.5px, 0.6px); }
+}
+
+/* 電視螢幕保護程式：RETRO_OS 在畫面裡彈來彈去 */
+.tv-bounce {
+  animation: tvBounceX 6.5s linear infinite alternate;
+}
+
+.tv-logo {
+  animation: tvBounceY 4.3s linear infinite alternate, rgbCycle 6s linear infinite;
+}
+
+@keyframes tvBounceX {
+  from { transform: translateX(0); }
+  to { transform: translateX(70px); }
+}
+
+@keyframes tvBounceY {
+  from { transform: translateY(0); }
+  to { transform: translateY(50px); }
+}
+
+@media (max-width: 640px) {
+  .gear-tooltip {
+    min-width: 140px;
+    padding: 7px 9px;
+  }
+
+  .gear-tooltip-name {
+    font-size: 0.85rem;
+  }
+}

@@ -91,7 +91,7 @@ const Footer = () => (
     <p className="footer-terminal">
       <span className="footer-prompt">retro@space:~$</span> logout
     </p>
-    <p className="footer-copy">© {new Date().getFullYear()} Retro · Built with React</p>
+    <p className="footer-copy">© {new Date().getFullYear()} Retro · ALL RIGHTS RESERVED</p>
   </footer>
 );
 

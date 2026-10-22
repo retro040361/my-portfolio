@@ -1,10 +1,60 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, Suspense, lazy } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { LuGamepad2, LuPlane, LuMusic, LuMapPin } from 'react-icons/lu';
+import { LuGamepad2, LuPlane, LuMusic, LuMapPin, LuMonitor } from 'react-icons/lu';
 import { games, travels, concerts } from './data/playground';
 import RetroModal from './shared/RetroModal';
+import GearRoom from './GearRoom';
+import './styles/gear.css';
 import { resolveMediaUrl } from './shared/markdown';
+
+// 3D 電競房間：只有打開 Setup 分頁才下載 three.js
+const GearRoom3D = lazy(() => import('./gear3d/GearRoom3D'));
+
+const supportsWebGL = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+  } catch {
+    return false;
+  }
+};
+
+// 3D 版出錯時（例如 WebGL 建立失敗）退回 SVG 版
+class FallbackBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+// 進到 Playground 後趁瀏覽器閒置時先下載 3D 程式，切到 Setup 分頁時就不用等
+const prefetchGearRoom = () => {
+  const run = () => import('./gear3d/GearRoom3D');
+  if (window.requestIdleCallback) window.requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 2000);
+};
+
+// 不支援 WebGL 或開啟「減少動態效果」時用 SVG 版
+const SetupRoom = () => {
+  const [use3D] = useState(() => supportsWebGL() && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  if (!use3D) return <GearRoom />;
+  return (
+    <FallbackBoundary fallback={<GearRoom />}>
+      <Suspense fallback={<div className="gear-loading">$ loading 3D scene…</div>}>
+        <GearRoom3D />
+      </Suspense>
+    </FallbackBoundary>
+  );
+};
 
 // Stagger 容器動畫
 const containerVariants = {
@@ -49,6 +99,7 @@ const TABS = [
   { key: 'games', label: 'Game', Icon: LuGamepad2 },
   { key: 'travels', label: 'Travel', Icon: LuPlane },
   { key: 'concerts', label: 'Concerts', Icon: LuMusic },
+  { key: 'setup', label: 'Setup', Icon: LuMonitor },
 ];
 
 const getItemTitle = (item) => item.title || item.country || item.artist;
@@ -131,6 +182,10 @@ const Playground = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const closeModal = useCallback(() => setSelectedItem(null), []);
 
+  useEffect(() => {
+    if (supportsWebGL()) prefetchGearRoom();
+  }, []);
+
   const selectTab = (key) => {
     setSearchParams(key === 'games' ? {} : { tab: key }, { replace: true });
   };
@@ -166,7 +221,12 @@ const Playground = () => {
         ))}
       </motion.div>
 
-      {activeTab === 'concerts' ? (
+      {activeTab === 'setup' ? (
+        // 設備：電競房間動畫
+        <motion.div key="setup" variants={itemVariants} initial="hidden" animate="visible">
+          <SetupRoom />
+        </motion.div>
+      ) : activeTab === 'concerts' ? (
         // 演唱會：依年份排列的時間軸
         <motion.div
           key="concerts"

@@ -40,7 +40,7 @@ const Projects = () => {
       <motion.div className="projects-header" variants={itemVariants}>
         <span className="path-label">~/projects</span>
         <h1 className="glitch" data-text="My Projects">My Projects</h1>
-        <p className="projects-subtitle">代碼與生活交織的結晶 ── 這裡展示了我最近開發的專案與系統。點擊卡片看詳細內容！</p>
+        <p className="projects-subtitle">無聊亂做＠＠</p>
       </motion.div>
 
       <div className="projects-grid">

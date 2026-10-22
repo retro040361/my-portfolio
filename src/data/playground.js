@@ -150,6 +150,17 @@ export const travels = [
 export const concerts = [
   {
     type: 'concert',
+    artist: 'BIGBANG 2026-2027 WORLD TOUR < XX : COSMOS > IN TAIPEI',
+    period: '2026.10.09',
+    venue: '台北大巨蛋',
+    emoji: '🎤',
+    image: '/image/bigbangxxcosmos.jpg',
+    gradient: 'linear-gradient(135deg, #fa5252 0%, #be4bdb 100%)',
+    memory: 'Bang Bang Bang',
+    detailedThoughts: '' // TODO: 待補心得（原本複製自 TWICE 那場）
+  },
+  {
+    type: 'concert',
     artist: 'back number : Grateful Yesterdays Tour 2026 asia in Taipei',
     period: '2026.08.22',
     venue: '台北小巨蛋',
@@ -236,4 +247,18 @@ export const concerts = [
     memory: '人生第一場演唱會！高雄巨蛋的感動啟蒙。',
     detailedThoughts: '2015年的時線新地球是我人生看的第一場演唱會，那時還只是個學生，攢了很久的票錢坐在看台區。看著舞台上的燈光與全場揮舞的螢光棒，第一次體會到演唱會現場的宏大與震撼。聽著《修煉愛情》與《新地球》，音樂的種子在那一刻深深埋入了心底。'
   }
+];
+
+// 設備清單（Setup 分頁）：key 對應 GearRoom 動畫裡的物品
+export const gear = [
+  { key: 'pc', category: '桌機', name: 'Custom PC', specs: ['CPU · Intel Core i5-12400', 'GPU · NVIDIA GeForce RTX 4070 SUPER', 'Mem · 32GB DDR4'] },
+  { key: 'monitor1', category: '主螢幕', name: 'MSI 27" QD LED', specs: ['27 吋'] },
+  { key: 'monitor2', category: '副螢幕', name: 'BenQ MOBIUZ EX2710Q', specs: ['27 吋'] },
+  { key: 'laptop', category: '筆電', name: 'Apple MacBook Air', specs: ['Apple M1'] },
+  { key: 'tablet', category: '平板', name: 'Apple iPad Air', specs: ['Apple M2'] },
+  { key: 'phone', category: '手機', name: 'Samsung Galaxy S25 Ultra', specs: [] },
+  { key: 'ally', category: '掌機', name: 'ROG Xbox Ally X', specs: [] },
+  { key: 'switch2', category: '掌機', name: 'Nintendo Switch 2', specs: [] },
+  { key: 'headphones', category: '耳機', name: 'Sony WH-1000XM6', specs: [] },
+  { key: 'speakers', category: '喇叭', name: 'Edifier M90', specs: ['黑色 · 一對'] },
 ];
