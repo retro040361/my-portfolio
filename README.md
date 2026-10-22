@@ -1,70 +1,59 @@
-# Getting Started with Create React App
+# Retro's Space
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Retro 的個人網站：自我介紹、專案、部落格，以及遊戲／旅行／演唱會紀錄。
 
-## Available Scripts
+🔗 https://retro040361.github.io/my-portfolio/
 
-In the project directory, you can run:
+## 技術
 
-### `npm start`
+- React 19 + React Router 7（HashRouter，部署在 GitHub Pages）
+- Motion（Framer Motion）做頁面與元件動畫
+- react-markdown + rehype-raw 渲染部落格文章
+- react-icons 提供 SVG 圖示
+- Create React App 建置
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 專案結構
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+public/
+  posts/            部落格文章（Markdown + YAML frontmatter）
+  image/            文章與 Playground 用的圖片
+scripts/
+  generate-posts.js 掃描 posts/ 產生 src/data/posts-metadata.json
+  compress-images.js 壓縮 public/image 下超過 300KB 的圖片
+src/
+  App.js            導覽列、Footer、路由
+  Home.js / About.js / Projects.js / Blog.js / BlogPost.js / Playground.js
+  HomeIntro.js      首頁開場動畫：開機文字 → RETRO_OS 噴漆標誌（可按任意鍵跳過）
+  data/             網站內容：profile、projects、playground、文章索引
+  shared/           共用元件：Markdown 渲染、RetroModal
+  styles/ui.css     導覽列、首頁開場動畫、部落格與時間軸等樣式
+  styles/dedsec.css Watch Dogs 主題（深色 DedSec / 淺色 ctOS）
+```
 
-### `npm test`
+## 新增文章
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+在 `public/posts/` 新增 `<id>.md`：
 
-### `npm run build`
+```markdown
+---
+id: 8
+title: 文章標題
+date: 2026-10-21
+category: tech        # tech 或 life
+excerpt: 列表上的摘要
+cover: /image/xxx.jpg # 選填，沒填會自動抓文章第一張圖
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+內文...
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+`npm start` / `npm run build` 會自動重新產生文章索引。多圖並排、影片嵌入的寫法見 [usages.md](usages.md)。
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 指令
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+npm start        # 開發模式
+npm test         # 單元測試
+npm run deploy   # build 並部署到 gh-pages
+```

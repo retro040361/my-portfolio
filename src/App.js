@@ -1,482 +1,140 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion'; // 引入 motion 庫
-import ReactMarkdown from 'react-markdown'; // 引入 ReactMarkdown 用於 Modal 內渲染的文章
-import rehypeRaw from 'rehype-raw'; // 引入 rehype-raw 解析原始 HTML 標籤 (如 <video>)
-import BlogPost from './BlogPost'; // 引入 BlogPost 組件
-import About from './About'; // 引入 About 元件
-import Playground from './Playground'; // 引入 Playground 元件
-import BootLoader from './BootLoader'; // 引入開機載入元件
-import Projects from './Projects'; // 引入 Projects 元件
-import blogPosts from './data/posts-metadata.json'; // 引入自動生成的文章元資料
+import { HashRouter as Router, Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { motion } from 'motion/react';
+import { LuSun, LuMoon, LuMenu, LuX } from 'react-icons/lu';
+import Home from './Home';
+import Blog from './Blog';
+import BlogPost from './BlogPost';
+import About from './About';
+import Playground from './Playground';
+import Projects from './Projects';
+import { socialLinks } from './data/profile';
 import './App.css';
+import './styles/ui.css';
+import './styles/dedsec.css';
 
-// 解析 Markdown 中的圖片與影音媒體路徑（相容 /image/...、../image/...、./image/... 與外部 URL）
-const resolveMediaUrl = (src) => {
-  if (!src) return src;
-  if (/^(https?:|data:|blob:|\/\/)/i.test(src)) {
-    return src;
-  }
-  let cleanPath = src.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\/+/, '');
-  if (cleanPath.startsWith('public/')) {
-    cleanPath = cleanPath.slice(7);
-  }
-  const publicUrl = process.env.PUBLIC_URL || '';
-  return `${publicUrl}/${cleanPath}`;
+const NAV_ITEMS = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/about', label: 'About' },
+  { to: '/projects', label: 'Projects' },
+  { to: '/blog', label: 'Blog' },
+  { to: '/playground', label: 'Playground' },
+];
+
+// 讀取初始主題：使用者上次的選擇 > 系統偏好（index.html 已先套用到 <html>）
+const getInitialTheme = () => {
+  const attr = document.documentElement.getAttribute('data-theme');
+  return attr === 'light' || attr === 'dark' ? attr : 'dark';
 };
 
-// 影音播放器組件 (含檔案遺失 404 / 載入失敗之友善提示)
-const VideoPlayer = ({ src, alt, ...props }) => {
-  const [hasError, setHasError] = useState(false);
-  const finalSrc = resolveMediaUrl(src);
+const Navbar = ({ theme, onToggleTheme }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
-  if (hasError) {
-    return (
-      <div className="markdown-media-error" style={{
-        padding: '14px 18px',
-        margin: '16px 0',
-        borderRadius: '12px',
-        background: 'rgba(239, 68, 68, 0.12)',
-        border: '1px solid rgba(239, 68, 68, 0.3)',
-        color: 'var(--text-primary)',
-        fontSize: '0.88rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
-        <span>⚠️ 影片檔案未找到或無法載入（檔名路徑：<code>{src}</code>）</span>
-      </div>
-    );
-  }
+  // 換頁時自動收起手機選單並回到頁首
+  useEffect(() => {
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
-    <video
-      src={finalSrc}
-      controls
-      playsInline
-      preload="metadata"
-      className="markdown-video"
-      onError={() => setHasError(true)}
-      {...props}
-    >
-      {alt || "您的瀏覽器不支援播放此影片。"}
-    </video>
+    <nav className="navbar">
+      <NavLink to="/" className="logo">
+        <span className="logo-prompt">~/</span>retro<span className="logo-cursor" />
+      </NavLink>
+
+      <div className="nav-actions">
+        <ul className={`nav-links ${menuOpen ? 'is-open' : ''}`}>
+          {NAV_ITEMS.map(item => (
+            <li key={item.to}>
+              <NavLink to={item.to} end={item.end} className={({ isActive }) => (isActive ? 'active' : '')}>
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <motion.button
+          onClick={onToggleTheme}
+          className="theme-toggle-btn"
+          title={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
+          aria-label={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
+          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.1 }}
+        >
+          {theme === 'dark' ? <LuSun /> : <LuMoon />}
+        </motion.button>
+
+        <button
+          type="button"
+          className="nav-menu-btn"
+          aria-label={menuOpen ? '關閉選單' : '開啟選單'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(open => !open)}
+        >
+          {menuOpen ? <LuX /> : <LuMenu />}
+        </button>
+      </div>
+    </nav>
   );
 };
 
-// 定義部落格列表的動畫效果
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1, // 每個子元件動畫延遲 0.1 秒
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: -20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 100,
-    },
-  },
-};
-
-// 讓首頁能夠自定義 Hollow Purple 光芒的組件
-const Home = () => (
-  <motion.div 
-    className="home-container"
-    initial="hidden"
-    animate="visible"
-    variants={containerVariants}
-  >
-    <div className="hero-section">
-      <motion.h1 variants={itemVariants}>Welcome to Retro's Space</motion.h1>
-      <motion.p variants={itemVariants}>"九鋼 偏光 烏と声明 表裏の間"</motion.p>
-      <motion.p variants={itemVariants}>"虛式 茈"</motion.p>
-      
-      <motion.div className="home-image-container" variants={itemVariants}>
-        <img src={`${process.env.PUBLIC_URL}/image/gojo.webp`} alt="個人首頁圖" className="home-image" />
-        
-        {/* 虛式「茈」紫色圓球與複合特效 */}
-        <div className="purple-pulse-dot">
-          {/* 十字星形白色偏光光芒 */}
-          <div className="star-glow"></div>
-          {/* 鋸齒折線不規則閃電 */}
-          <svg className="lightning-svg l1" viewBox="0 0 30 80">
-            <path d="M15,80 L22,60 L8,40 L24,20 L15,0" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <svg className="lightning-svg l2" viewBox="0 0 30 80">
-            <path d="M15,80 L7,65 L23,45 L10,25 L15,0" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <svg className="lightning-svg l3" viewBox="0 0 30 80">
-            <path d="M15,80 L25,55 L6,35 L20,15 L15,0" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <svg className="lightning-svg l4" viewBox="0 0 30 80">
-            <path d="M15,80 L9,60 L24,35 L7,15 L15,0" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-      </motion.div>
+const Footer = () => (
+  <footer className="site-footer">
+    <div className="footer-socials">
+      {socialLinks.map(({ key, label, href, Icon }) => (
+        <a key={key} href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}>
+          <Icon />
+        </a>
+      ))}
     </div>
-  </motion.div>
+    <p className="footer-terminal">
+      <span className="footer-prompt">retro@space:~$</span> logout
+    </p>
+    <p className="footer-copy">© {new Date().getFullYear()} Retro · Built with React</p>
+  </footer>
 );
 
-// 可自定義的分類小標題
-const CATEGORY_SUBTITLES = {
-  all: "隨便亂寫＠＠",
-  tech: "記錄程式學習、踩坑筆記與前端開發心得。",
-  life: "繁花在時光中盛開，在記憶中凋零"
-};
-
-// 讓 react-markdown 渲染的 HTML 元素能套用樣式（自動偵測同段落多張圖片並轉為並排網格）
-const markdownComponents = {
-  h1: ({ children, ...props }) => <h1 className="markdown-h1" {...props}>{children}</h1>,
-  h2: ({ children, ...props }) => <h2 className="markdown-h2" {...props}>{children}</h2>,
-  h3: ({ children, ...props }) => <h3 className="markdown-h3" {...props}>{children}</h3>,
-  p: ({ children, ...props }) => {
-    const childrenArray = React.Children.toArray(children);
-    const imgElements = childrenArray.filter(
-      child => React.isValidElement(child) && (child.type === 'img' || child.props?.src)
-    );
-    if (imgElements.length >= 2) {
-      const gridClass = `img-grid-${Math.min(imgElements.length, 4)}`;
-      return (
-        <div className={`${gridClass} markdown-img-group`} {...props}>
-          {children}
-        </div>
-      );
-    }
-    return <p className="markdown-p" {...props}>{children}</p>;
-  },
-  ul: ({ children, ...props }) => <ul className="markdown-ul" {...props}>{children}</ul>,
-  ol: ({ children, ...props }) => <ol className="markdown-ol" {...props}>{children}</ol>,
-  li: ({ children, ...props }) => <li className="markdown-li" {...props}>{children}</li>,
-  pre: ({ children, ...props }) => <pre className="markdown-pre" {...props}>{children}</pre>,
-  code: ({ children, ...props }) => <code className="markdown-code" {...props}>{children}</code>,
-  hr: (props) => <hr className="markdown-hr" {...props} />,
-  blockquote: ({ children, ...props }) => <blockquote className="markdown-blockquote" {...props}>{children}</blockquote>,
-  img: ({ src, alt, ...props }) => {
-    const finalSrc = resolveMediaUrl(src);
-    const isVideo = src && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
-
-    if (isVideo) {
-      return <VideoPlayer src={src} alt={alt} {...props} />;
-    }
-    return <img src={finalSrc} alt={alt || "文章圖片"} className="markdown-img" loading="lazy" decoding="async" {...props} />;
-  },
-  video: ({ src, children, ...props }) => {
-    return <VideoPlayer src={src} {...props}>{children}</VideoPlayer>;
-  },
-  a: ({ href, children, ...props }) => {
-    if (href) {
-      // eslint-disable-next-line no-useless-escape
-      const ytMatch = href.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-      if (ytMatch && ytMatch[1]) {
-        return (
-          <div className="markdown-video-wrapper">
-            <iframe
-              src={`https://www.youtube.com/embed/${ytMatch[1]}`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="markdown-iframe"
-            />
-          </div>
-        );
-      }
-    }
-    return <a href={href} target="_blank" rel="noreferrer" {...props}>{children}</a>;
-  },
-};
-
-const Blog = () => {
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [postContent, setPostContent] = useState("");
-  const [loadingPost, setLoadingPost] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
-
-  const filteredPosts = activeCategory === 'all' 
-    ? blogPosts 
-    : blogPosts.filter(post => post.category === activeCategory);
+function App() {
+  const [theme, setTheme] = useState(getInitialTheme);
 
   useEffect(() => {
-    if (!selectedPost) return;
-    setLoadingPost(true);
-    setPostContent("");
-    
-    fetch(`${process.env.PUBLIC_URL || ''}${selectedPost.markdownFile}`)
-      .then(res => {
-        if (!res.ok) throw new Error("讀取檔案出錯");
-        return res.text();
-      })
-      .then(text => {
-        const cleanContent = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
-        setPostContent(cleanContent);
-        setLoadingPost(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setPostContent("讀取文章時出錯，請稍後再試。");
-        setLoadingPost(false);
-      });
-  }, [selectedPost]);
-
-  return (
-    <motion.div 
-      className="blog-container"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <div className="blog-header-wrapper">
-        <div className="blog-title-section">
-          <motion.h1 variants={itemVariants}>
-            {activeCategory === 'all' && "全部分享"}
-            {activeCategory === 'tech' && "技術分享"}
-            {activeCategory === 'life' && "生活隨筆"}
-          </motion.h1>
-          <motion.p className="blog-subtitle" variants={itemVariants}>
-            {CATEGORY_SUBTITLES[activeCategory]}
-          </motion.p>
-        </div>
-
-        {/* 類別切換按鈕組 */}
-        <motion.div className="blog-filter-buttons" variants={itemVariants}>
-          <button 
-            className={`filter-btn ${activeCategory === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('all')}
-          >
-            📂 全部
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'tech' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('tech')}
-          >
-            💻 技術
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'life' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('life')}
-          >
-            🌿 生活
-          </button>
-        </motion.div>
-      </div>
-
-      {/* 2-column Grid 卡片排版以契合 Projects 佈局 (Option 1) */}
-      <motion.div 
-        key={activeCategory}
-        className="projects-grid" 
-        style={{ marginTop: '30px' }}
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {filteredPosts.map(post => (
-          <motion.div 
-            key={post.id} 
-            variants={itemVariants}
-            whileHover={{ y: -6, transition: { duration: 0.15, ease: 'easeOut' } }}
-            onClick={() => setSelectedPost(post)}
-            style={{ cursor: 'pointer' }}
-          >
-              <div className="project-card-glass" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                {/* 使用與專案一致的 Banner 結構 */}
-                <div className="project-banner" style={{ background: post.category === 'tech' ? 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)' : 'linear-gradient(135deg, #ffc9c9 0%, #e03131 100%)', height: '100px' }}>
-                  <span className="project-emoji" style={{ fontSize: '3rem' }}>{post.category === 'tech' ? '💻' : '🌿'}</span>
-                </div>
-
-                <div className="project-content" style={{ padding: '24px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <div className="post-card-meta" style={{ marginBottom: '8px' }}>
-                    <span className="post-date" style={{ fontSize: '0.82rem' }}>{post.date}</span>
-                    <span className={`post-category-tag ${post.category}`}>
-                      {post.category === 'tech' ? '💻 技術' : '🌿 生活'}
-                    </span>
-                  </div>
-                  <h2 className="project-title" style={{ fontSize: '1.25rem', marginBottom: '8px' }}>{post.title}</h2>
-                  <p className="project-desc" style={{ fontSize: '0.88rem', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', minHeight: '4.2em' }}>
-                    {post.excerpt}
-                  </p>
-                  
-                  <button 
-                    className="read-more" 
-                    style={{ marginTop: 'auto', alignSelf: 'flex-start', cursor: 'pointer' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPost(post);
-                    }}
-                  >
-                    閱讀更多
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-      </motion.div>
-
-      {/* 彈出式文章詳細視窗 (Option 1 & 2 混合風格) */}
-      <AnimatePresence>
-        {selectedPost && (
-          <div className="modal-overlay" onClick={() => { setSelectedPost(null); setIsMaximized(false); }}>
-            <motion.div 
-              className={`modal-box retro-window ${isMaximized ? 'is-maximized' : ''}`}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Option 2 風格：macOS/Linux 交通燈視窗標題列 */}
-              <div className="login-window-header" style={{ padding: '10px 16px', background: 'var(--navbar-bg)', borderBottom: '1px solid var(--card-border)' }}>
-                <div className="window-controls">
-                  <span className="control-dot red" title="關閉 (Close)" onClick={() => { setSelectedPost(null); setIsMaximized(false); }}>
-                    <span className="dot-icon">✕</span>
-                  </span>
-                  <span className="control-dot yellow" title="縮小 (Minimize)" onClick={() => { setSelectedPost(null); setIsMaximized(false); }}>
-                    <span className="dot-icon">−</span>
-                  </span>
-                  <span className="control-dot green" title={isMaximized ? "還原 (Restore)" : "放大 (Maximize)"} onClick={() => setIsMaximized(!isMaximized)}>
-                    <span className="dot-icon">{isMaximized ? '⤡' : '⤢'}</span>
-                  </span>
-                </div>
-                <div className="window-title" style={{ color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: '0.82rem' }}>
-                  Markdown Reader - {selectedPost.title}
-                </div>
-                <div className="window-spacer" style={{ width: '30px' }}></div>
-              </div>
-
-              {/* 滾動內容包裝容器（讓 Cover Banner 隨捲動往上滑動消失） */}
-              <div className="modal-scroll-body">
-                {/* 頂部橫幅 (放大橫幅視覺，配搭光暈與分類主題) */}
-                <div 
-                  className="modal-banner" 
-                  style={{ 
-                    background: selectedPost.category === 'tech' 
-                      ? 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3b82f6 100%)' 
-                      : 'linear-gradient(135deg, #e03131 0%, #f06595 50%, #ffc9c9 100%)' 
-                  }}
-                >
-                  <span className="modal-emoji">{selectedPost.category === 'tech' ? '💻' : '🌿'}</span>
-                </div>
-
-                {/* 內文主體 (保有適度左右留白與優雅閱讀排版) */}
-                <div className="modal-body">
-                  <div className="modal-meta-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-                    <span className={`post-category-tag ${selectedPost.category}`}>
-                      {selectedPost.category === 'tech' ? '💻 技術' : '🌿 生活'}
-                    </span>
-                    <span className="modal-meta-label" style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                      📅 Published on {selectedPost.date}
-                    </span>
-                  </div>
-                  <h2 className="modal-title" style={{ fontSize: '1.75rem', marginTop: '4px', marginBottom: '16px' }}>
-                    {selectedPost.title}
-                  </h2>
-                  
-                  <div className="modal-divider" style={{ margin: '15px 0' }} />
-
-                  {loadingPost ? (
-                    <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                      正在讀取 Markdown 內容...
-                    </div>
-                  ) : (
-                    <div className="markdown-content" style={{ color: 'var(--text-secondary)', lineHeight: 1.75 }}>
-                      <ReactMarkdown rehypePlugins={[rehypeRaw]} components={markdownComponents}>
-                        {postContent}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
-
-function App() {
-  const [isBooted, setIsBooted] = React.useState(() => {
-    return sessionStorage.getItem('isBooted') === 'true';
-  });
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
-  });
-
-  React.useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('theme', next);
+      } catch {
+        // 無法儲存時只套用在本次瀏覽
+      }
+      return next;
+    });
   };
 
-  const handleBootComplete = React.useCallback(() => {
-    sessionStorage.setItem('isBooted', 'true');
-    setIsBooted(true);
-  }, []);
-
   return (
-    <>
-      <AnimatePresence mode="wait">
-        {!isBooted && (
-          <BootLoader onComplete={handleBootComplete} />
-        )}
-      </AnimatePresence>
+    <Router>
+      <div className="App">
+        <Navbar theme={theme} onToggleTheme={toggleTheme} />
 
-      {isBooted && (
-        <Router>
-          <div className="App">
-            {/* 導覽選單 */}
-            <nav className="navbar">
-              <div className="logo">Retro's Space</div>
-              <ul className="nav-links">
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/about">About Me</Link></li>
-                <li><Link to="/projects">Projects</Link></li>
-                <li><Link to="/blog">Blogs</Link></li>
-                <li><Link to="/playground">Playground</Link></li>
-                <li>
-                  <motion.button 
-                    onClick={toggleTheme} 
-                    className="theme-toggle-btn"
-                    title={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    {theme === 'dark' ? '☀️' : '🌙'}
-                  </motion.button>
-                </li>
-              </ul>
-            </nav>
+        {/* 頁面內容 */}
+        <main className="content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/playground" element={<Playground />} />
+          </Routes>
+        </main>
 
-            {/* 頁面內容 */}
-            <div className="content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/playground" element={<Playground />} />
-              </Routes>
-            </div>
-          </div>
-        </Router>
-      )}
-    </>
+        <Footer />
+      </div>
+    </Router>
   );
 }
-
-
 
 export default App;

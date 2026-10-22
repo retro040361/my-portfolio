@@ -66,12 +66,22 @@ try {
     const excerpt = metadata.excerpt || (content.replace(/[#*`\-]/g, '').replace(/\r?\n/g, ' ').trim().slice(0, 100) + '...');
     const markdownFile = `/posts/${filename}`;
 
+    // 封面：優先使用 frontmatter 的 cover，否則自動抓文章中第一張圖片
+    const firstImage = content.match(/!\[[^\]]*\]\(([^)\s]+)[^)]*\)/) || content.match(/<img[^>]+src=["']([^"']+)["']/i);
+    const cover = metadata.cover || (firstImage ? firstImage[1] : null);
+
+    // 閱讀時間：中文約每分鐘 400 字
+    const plainText = content.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/<[^>]+>/g, '').replace(/[#*`>\-\s]/g, '');
+    const readingMinutes = Math.max(1, Math.round(plainText.length / 400));
+
     posts.push({
       id,
       title,
       date,
       category,
       excerpt,
+      cover,
+      readingMinutes,
       markdownFile
     });
   });
