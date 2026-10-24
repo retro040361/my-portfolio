@@ -4,14 +4,19 @@ import { Html, OrthographicCamera, PresentationControls, PerformanceMonitor } fr
 import { EffectComposer, N8AO, Bloom, Noise, Vignette, ToneMapping, SMAA, Select, Outline } from '@react-three/postprocessing';
 import { ToneMappingMode, BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
-import { Box, Clay, Glow, Panel, LedStrip, RgbGlowMaterial, XboxController, Phone, AllyX, Switch2, MacBook, IPad, Monitor, PcTower, EdifierSpeaker } from './parts';
+import { Box, Clay, Glow, Panel, LedStrip, RgbGlowMaterial, XboxController, Phone, AllyX, Switch2, MacBook, IPad, Monitor, PcTower, EdifierSpeaker, TvBench, GameCase, PokeBall, RazerCobraPro, Mouse, Blahaj } from './parts';
 import { useAnimatedTexture, useStaticTexture, useWoodTexture } from './textures';
 import { drawCodeScreen, drawEldenScreen, drawSwitchScreen, drawWindowSky, drawNeonText } from './screens';
 import Person, { usePlayWeight } from './Person';
+import Dog from './Dog';
 
 // 房間 4.2 × 4.2 × 3 公尺；鏡頭從右前上方 45° 看過來（等角視角）
 const CENTER = new THREE.Vector3(2.05, 0.95, 2.05);
 const CAMERA_OFFSET = new THREE.Vector3(10, 10, 10);
+
+// 兩個人各用一台螢幕：男生在 BenQ 前面（艾爾登法環＋手把），女生在 MSI 前面（寫程式）
+const BOY_Z = 2.46;
+const GIRL_Z = 3.3;
 
 // 提示框指向的位置
 export const ANCHORS = {
@@ -20,11 +25,15 @@ export const ANCHORS = {
   pc: [0.33, 0.8, 4.04],
   laptop: [1.3, 0.62, 0.73],
   tablet: [2.34, 0.55, 2.04],
-  phone: [0.55, 0.9, 3.48],
+  phone: [0.6, 0.9, 3.74],
   ally: [3.46, 0.62, 0.14],
   speakers: [2.62, 0.62, 0.16],
+  games: [3.2, 0.3, 0.26],
+  mouse: [0.6, 0.9, 2.08],
+  shark: [0.78, 0.62, 0.75],
+  controller: [0.38, 0.92, 1.9],
   switch2: [2.86, 0.6, 0.14],
-  headphones: [1.09, 1.4, 2.8],
+  headphones: [1.09, 1.4, BOY_Z],
 };
 
 // 效能：先在背景把所有 shader 編譯好再顯示，避免一打開分頁卡一下
@@ -51,6 +60,63 @@ const CameraRig = () => {
   }, [camera, size]);
   return null;
 };
+
+// 滑鼠墊（下緣有 LED）＋鍵盤（底下有 RGB 光暈）
+const Keyboard = ({ z, body = '#16161c', keys = '#2a2a34', led = '#ff1f8f' }) => (
+  <group>
+    <Box p={[0.57, 0.813, z - 0.15]} s={[0.32, 0.006, 0.82]} c="#1a1621" r={0.003} />
+    <LedStrip from={[0.732, 0.817, z - 0.55]} to={[0.732, 0.817, z + 0.25]} colors={[led, led]} segments={3} thickness={0.008} strength={2} />
+    <Box p={[0.57, 0.83, z]} s={[0.15, 0.025, 0.48]} c={body} r={0.008} />
+    <mesh position={[0.57, 0.817, z]}>
+      <boxGeometry args={[0.16, 0.004, 0.49]} />
+      <RgbGlowMaterial />
+    </mesh>
+    {Array.from({ length: 5 }).map((_, r) => Array.from({ length: 15 }).map((__, c) => (
+      <mesh key={`${r}-${c}`} position={[0.51 + r * 0.03, 0.848, z - 0.2 + c * 0.029]}>
+        <boxGeometry args={[0.022, 0.012, 0.022]} />
+        <meshStandardMaterial color={keys} roughness={0.7} />
+      </mesh>
+    )))}
+  </group>
+);
+
+// 電競椅：五爪腳、座墊、扶手、往後仰的椅背
+const GamingChair = ({ z, seat = '#1f1f2a', accent = '#ff1f8f' }) => (
+  <group position={[0, 0, z]}>
+    <group position={[1.16, 0, 0]}>
+      {[0, 1, 2, 3, 4].map(i => {
+        const a = (i / 5) * Math.PI * 2;
+        return (
+          <group key={i}>
+            <mesh position={[Math.cos(a) * 0.14, 0.07, Math.sin(a) * 0.14]} rotation={[0, -a, Math.PI / 2]} castShadow>
+              <cylinderGeometry args={[0.018, 0.018, 0.28, 10]} />
+              <Clay color="#18181f" />
+            </mesh>
+            <mesh position={[Math.cos(a) * 0.28, 0.03, Math.sin(a) * 0.28]} castShadow>
+              <sphereGeometry args={[0.03, 12, 10]} />
+              <Clay color="#111116" />
+            </mesh>
+          </group>
+        );
+      })}
+      <mesh position={[0, 0.25, 0]} castShadow><cylinderGeometry args={[0.025, 0.03, 0.36, 12]} /><Clay color="#2a2a33" rough={0.5} /></mesh>
+    </group>
+    <Box p={[1.14, 0.46, 0]} s={[0.5, 0.09, 0.52]} c={seat} r={0.04} />
+    {[1, -1].map(side => (
+      <group key={side}>
+        <Box p={[1.2, 0.56, side * 0.28]} s={[0.05, 0.12, 0.04]} c="#1a1a22" r={0.01} />
+        <Box p={[1.12, 0.63, side * 0.28]} s={[0.3, 0.04, 0.07]} c={seat} r={0.02} />
+      </group>
+    ))}
+    <group position={[1.4, 0.9, 0]} rotation={[0, 0, -0.12]}>
+      <Box p={[0, 0, 0]} s={[0.09, 0.82, 0.48]} c={seat} r={0.045} />
+      {[0.13, -0.13].map(sz => (
+        <Box key={sz} p={[0.047, 0, sz]} s={[0.01, 0.66, 0.05]} c={accent} r={0.004} rough={0.6} />
+      ))}
+      <Box p={[0.03, 0.34, 0]} s={[0.05, 0.1, 0.26]} c={accent} r={0.04} sheen />
+    </group>
+  </group>
+);
 
 // 可互動的設備：hover 時加上外框、顯示提示框
 // hit 是額外的透明感應區（不會被加外框），讓小東西也容易指到
@@ -257,11 +323,25 @@ const Scene = ({ active, setActive, theme, lowPower, tooltip, onReady, onPerform
             <Box p={[0, 0, 0]} s={[1.34, 0.77, 0.05]} c="#0d0d12" r={0.012} rough={0.5} cast={false} />
             <Panel p={[0, 0, 0.0255]} size={[1.28, 0.71]}><Glow color="#ffffff" strength={1.1} map={tvTex} /></Panel>
           </group>
-          <Box p={[3.2, 0.17, 0.16]} s={[1.36, 0.34, 0.3]} c="#efe9e1" r={0.03} />
-          <Box p={[3.2, 0.17, 0.311]} s={[1.3, 0.004, 0.004]} c="#b9b2a8" r={0.001} />
-          {[2.75, 3.65].map(x => (
-            <Box key={x} p={[x, 0.24, 0.311]} s={[0.12, 0.02, 0.01]} c="#b9b2a8" r={0.005} />
-          ))}
+          {/* 木製電視櫃：三格開放式收納，裡面放遊戲片 */}
+          <TvBench cx={3.2} cz={0.16}>
+            {({ left, cell, t, floorY, cz }) => {
+              const cellCenter = (i) => left + t + cell / 2 + i * (cell + t);
+              const caseY = floorY + 0.085;
+              return (
+                <Item id="games" active={active} setActive={setActive}>
+                  {/* 左格：兩片側邊朝外立著 */}
+                  <GameCase title="Zelda: Breath of the Wild" position={[left + t + 0.03, caseY, cz + 0.02]} rotation={[0, Math.PI / 2, 0]} />
+                  <GameCase title="Zelda: Tears of the Kingdom" position={[left + t + 0.047, caseY, cz + 0.02]} rotation={[0, Math.PI / 2, 0]} />
+                  {/* 中格：Pokopia 封面朝外、稍微往後靠 */}
+                  <GameCase cover="pokopia" title="Pokémon Pokopia" position={[cellCenter(1), caseY - 0.002, cz + 0.01]} rotation={[-0.14, 0, 0]} />
+                  {/* 右格：王國之淚封面朝外，旁邊放一顆寶貝球 */}
+                  <GameCase cover="totk" title="Zelda: Tears of the Kingdom" position={[cellCenter(2) - 0.06, caseY - 0.002, cz + 0.01]} rotation={[-0.14, 0, 0]} />
+                  <PokeBall position={[cellCenter(2) + 0.09, floorY + 0.045, cz + 0.05]} rotation={[0, -0.5, 0]} />
+                </Item>
+              );
+            }}
+          </TvBench>
           <LedStrip from={[2.54, 0.01, 0.32]} to={[3.86, 0.01, 0.32]} segments={12} thickness={0.015} />
 
           {/* 掌機放在電視櫃上 */}
@@ -314,6 +394,13 @@ const Scene = ({ active, setActive, theme, lowPower, tooltip, onReady, onPerform
           <Item id="laptop" active={active} setActive={setActive}>
             <MacBook position={[1.36, 0.375, 0.73]} />
           </Item>
+          {/* IKEA 鯊魚：躺在枕頭和 MacBook 中間，頭朝向房間，微微側躺露出白肚子 */}
+          <Item id="shark" active={active} setActive={setActive}>
+            {/* 先沿身體長軸側躺（內層），再轉向（外層），不然會變成尾巴翹起來 */}
+            <group position={[0.78, 0.468, 0.75]} rotation={[0, -Math.PI / 2 + 0.25, 0]} scale={0.75}>
+              <Blahaj rotation={[0.35, 0, 0]} />
+            </group>
+          </Item>
 
           {/* ===== 邊桌（iPad 放在上面） ===== */}
           <group position={[2.34, 0, 2.04]}>
@@ -332,30 +419,24 @@ const Scene = ({ active, setActive, theme, lowPower, tooltip, onReady, onPerform
           ))}
           <LedStrip from={[0.765, 0.745, 1.77]} to={[0.765, 0.745, 3.86]} segments={16} thickness={0.015} />
 
-          {/* 滑鼠墊、鍵盤、滑鼠 */}
-          <Box p={[0.57, 0.813, 2.72]} s={[0.32, 0.006, 0.94]} c="#1a1621" r={0.003} />
-          <LedStrip from={[0.732, 0.817, 2.26]} to={[0.732, 0.817, 3.18]} colors={['#ff1f8f', '#ff1f8f']} segments={4} thickness={0.008} strength={2} />
-          <Box p={[0.57, 0.83, 2.82]} s={[0.15, 0.025, 0.48]} c="#16161c" r={0.008} />
-          <mesh position={[0.57, 0.817, 2.82]}>
-            <boxGeometry args={[0.16, 0.004, 0.49]} />
-            <RgbGlowMaterial />
-          </mesh>
-          {Array.from({ length: 5 }).map((_, r) => Array.from({ length: 15 }).map((__, c) => (
-            <mesh key={`${r}-${c}`} position={[0.51 + r * 0.03, 0.848, 2.62 + c * 0.029]}>
-              <boxGeometry args={[0.022, 0.012, 0.022]} />
-              <meshStandardMaterial color="#2a2a34" roughness={0.7} />
-            </mesh>
-          )))}
-          <Box p={[0.6, 0.83, 2.4]} s={[0.1, 0.03, 0.06]} c="#16161c" r={0.015} />
-          <mesh position={[0.6, 0.817, 2.4]}><boxGeometry args={[0.06, 0.003, 0.03]} /><RgbGlowMaterial offset={0.4} /></mesh>
+          {/* 兩組滑鼠墊、鍵盤、滑鼠（滑鼠都在各自的右手邊，也就是 -z） */}
+          <Keyboard z={BOY_Z} />
+          <Keyboard z={GIRL_Z} body="#f4f1ec" keys="#e4dfe8" led="#ffb3d9" />
+          {/* Razer Cobra Pro 滑鼠 */}
+          <Item id="mouse" active={active} setActive={setActive} hit={<HitArea p={[0.6, 0.84, 2.08]} r={0.08} />}>
+            <RazerCobraPro position={[0.6, 0.816, 2.08]} rotation={[0, 0.08, 0]} />
+          </Item>
+          <Mouse position={[0.6, 0.816, GIRL_Z - 0.4]} rotation={[0, -0.06, 0]} />
 
           {/* 桌上的 Xbox 手把（打遊戲時被拿起來） */}
           <group ref={deskController}>
-            <XboxController position={[0.5, 0.83, 2.05]} rotation={[0, 0.3, 0]} />
+            <Item id="controller" active={active} setActive={setActive} hit={<HitArea p={[0.38, 0.84, 1.9]} r={0.1} />}>
+              <XboxController position={[0.38, 0.83, 1.9]} rotation={[0, 0.3, 0]} />
+            </Item>
           </group>
 
-          <Item id="phone" active={active} setActive={setActive} hit={<HitArea p={[0.55, 0.85, 3.48]} r={0.14} />}>
-            <Phone position={[0.55, 0.818, 3.48]} rotation={[0, 0.2, 0]} />
+          <Item id="phone" active={active} setActive={setActive} hit={<HitArea p={[0.6, 0.85, 3.74]} r={0.14} />}>
+            <Phone position={[0.6, 0.818, 3.74]} rotation={[0, 0.1, 0]} />
           </Item>
 
           {/* 檯燈 */}
@@ -384,43 +465,19 @@ const Scene = ({ active, setActive, theme, lowPower, tooltip, onReady, onPerform
             <PcTower position={[0.33, 0.36, 4.04]} />
           </Item>
 
-          {/* ===== 電競椅 ===== */}
-          <group position={[1.16, 0, 2.8]}>
-            {[0, 1, 2, 3, 4].map(i => {
-              const a = (i / 5) * Math.PI * 2;
-              return (
-                <group key={i}>
-                  <mesh position={[Math.cos(a) * 0.14, 0.07, Math.sin(a) * 0.14]} rotation={[0, -a, Math.PI / 2]} castShadow>
-                    <cylinderGeometry args={[0.018, 0.018, 0.28, 10]} />
-                    <Clay color="#18181f" />
-                  </mesh>
-                  <mesh position={[Math.cos(a) * 0.28, 0.03, Math.sin(a) * 0.28]} castShadow>
-                    <sphereGeometry args={[0.03, 12, 10]} />
-                    <Clay color="#111116" />
-                  </mesh>
-                </group>
-              );
-            })}
-            <mesh position={[0, 0.25, 0]} castShadow><cylinderGeometry args={[0.025, 0.03, 0.36, 12]} /><Clay color="#2a2a33" rough={0.5} /></mesh>
-          </group>
-          <Box p={[1.14, 0.46, 2.8]} s={[0.5, 0.09, 0.52]} c="#1f1f2a" r={0.04} />
-          {[1, -1].map(side => (
-            <group key={side}>
-              <Box p={[1.2, 0.56, 2.8 + side * 0.28]} s={[0.05, 0.12, 0.04]} c="#1a1a22" r={0.01} />
-              <Box p={[1.12, 0.63, 2.8 + side * 0.28]} s={[0.3, 0.04, 0.07]} c="#1f1f2a" r={0.02} />
-            </group>
-          ))}
-          <group position={[1.4, 0.9, 2.8]} rotation={[0, 0, -0.12]}>
-            <Box p={[0, 0, 0]} s={[0.09, 0.82, 0.48]} c="#1f1f2a" r={0.045} />
-            {[0.13, -0.13].map(z => (
-              <Box key={z} p={[0.047, 0, z]} s={[0.01, 0.66, 0.05]} c="#ff1f8f" r={0.004} rough={0.6} />
-            ))}
-            <Box p={[0.03, 0.34, 0]} s={[0.05, 0.1, 0.26]} c="#ff4fb8" r={0.04} sheen />
-          </group>
+          {/* ===== 電競椅（男生黑粉、女生白色） ===== */}
+          <GamingChair z={BOY_Z} />
+          <GamingChair z={GIRL_Z} seat="#ecebf0" accent="#9ad9ff" />
 
           {/* ===== 人 ===== */}
           <Person
+            z={BOY_Z}
             playRef={play}
+            wrapController={(node) => (
+              <Item id="controller" active={active} setActive={setActive} hit={<HitArea p={[0, 0, 0]} r={0.1} />}>
+                {node}
+              </Item>
+            )}
             wrapHeadphones={(node) => (
               <Item id="headphones" active={active} setActive={setActive} hit={<HitArea p={[0, 0, 0]} r={0.17} />}>
                 {node}
@@ -428,15 +485,17 @@ const Scene = ({ active, setActive, theme, lowPower, tooltip, onReady, onPerform
             )}
           />
 
+          <Person z={GIRL_Z} variant="girl" phase={0.37} />
+
+          {/* ===== 黃金獵犬（在房間裡到處散步） ===== */}
+          <Dog />
+
           {/* ===== 單人沙發與立燈 ===== */}
           <Box p={[3.2, 0.16, 2.8]} s={[0.56, 0.3, 0.56]} c="#7d70a8" r={0.06} sheen />
           {[2.86, 3.54].map(x => (
             <Box key={x} p={[x, 0.25, 2.85]} s={[0.12, 0.48, 0.7]} c="#6f6299" r={0.05} sheen />
           ))}
           <Box p={[3.2, 0.42, 3.13]} s={[0.8, 0.82, 0.14]} c="#6f6299" r={0.06} sheen />
-          {[3.0, 3.4].map(x => (
-            <Box key={x} p={[x, 0.42, 3.2]} s={[0.06, 0.66, 0.01]} c="#ff4fb8" r={0.004} />
-          ))}
           <Box p={[3.2, 0.42, 2.98]} s={[0.36, 0.26, 0.12]} c="#ff4fb8" r={0.06} sheen />
           <group position={[3.96, 0, 2.68]}>
             <mesh position={[0, 0.015, 0]} castShadow><cylinderGeometry args={[0.13, 0.15, 0.03, 24]} /><Clay color="#2b2833" /></mesh>

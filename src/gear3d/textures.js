@@ -95,6 +95,25 @@ export const useWoodTexture = () => useStaticTexture(1024, 1024, (ctx, w, h) => 
   }
 });
 
+// 白橡木（電視櫃）：淺色底＋細細的木紋
+export const useOakTexture = () => useStaticTexture(512, 512, (ctx, w, h) => {
+  ctx.fillStyle = '#dcc8a6';
+  ctx.fillRect(0, 0, w, h);
+  for (let i = 0; i < 70; i++) {
+    const y = (i / 70) * h + Math.sin(i * 7.3) * 4;
+    ctx.strokeStyle = `rgba(150, 118, 78, ${0.08 + ((i * 13) % 7) / 60})`;
+    ctx.lineWidth = 1 + ((i * 5) % 3) * 0.6;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(w * 0.3, y + Math.sin(i) * 6, w * 0.65, y - Math.cos(i) * 6, w, y + Math.sin(i * 2) * 3);
+    ctx.stroke();
+  }
+  [[0.3, 0.4], [0.75, 0.7]].forEach(([x, y]) => {
+    ctx.strokeStyle = 'rgba(140, 105, 65, 0.25)';
+    ctx.beginPath(); ctx.ellipse(x * w, y * h, 14, 5, 0, 0, Math.PI * 2); ctx.stroke();
+  });
+});
+
 // 一般文字標籤（GEFORCE RTX、BenQ 之類）
 export const useLabelTexture = (text, { w = 256, h = 64, color = '#f4f4f6', bg = null, font = '700 34px "Chakra Petch", sans-serif' } = {}) =>
   useStaticTexture(w, h, (ctx) => {

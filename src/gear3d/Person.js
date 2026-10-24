@@ -3,14 +3,16 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Box, Clay, XboxController } from './parts';
 
-// 坐在電競椅上的人（面向 -x 的書桌）：戴 Sony 耳機，
-// 16 秒一輪：前 55% 打字、後面拿起 Xbox 手把打遊戲，姿勢之間 0.6 秒平滑過渡
+// 坐在電競椅上的人（面向 -x 的書桌），整個人以 z 為中心擺放：
+// 男生戴 Sony 耳機，16 秒一輪：前 55% 打字、後面拿起 Xbox 手把打遊戲，姿勢之間 0.6 秒平滑過渡
+// 女生是棕色長髮，一直在打字
 
 const SKIN = '#e0a983';
-const HOODIE = '#3d3d58';
-const PANTS = '#2a2a3a';
-const HAIR = '#2b1d14';
-const CENTER_Z = 2.8;
+const LOOKS = {
+  boy: { top: '#3d3d58', collar: '#34344c', pants: '#2a2a3a', hair: '#2b1d14' },
+  girl: { top: '#e9dccb', collar: '#dccdb9', pants: '#3b4a6b', hair: '#6b3f22' },
+};
+const CENTER_Z = 0;
 const CYCLE = 16;
 
 // 兩個關節之間的膠囊（手臂、腿）
@@ -74,14 +76,19 @@ export const usePlayWeight = () => {
   return weight;
 };
 
-const Person = ({ playRef, wrapHeadphones = (node) => node }) => {
+const Person = ({ z = 0, variant = 'boy', playRef, phase = 0, wrapHeadphones = (node) => node, wrapController = (node) => node }) => {
+  const look = LOOKS[variant];
+  const HOODIE = look.top;
+  const PANTS = look.pants;
+  const HAIR = look.hair;
+  const girl = variant === 'girl';
   const joints = useRef({ ...POSES.type });
   const head = useRef();
   const controller = useRef();
 
   useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    const w = playRef.current;
+    const t = state.clock.elapsedTime + phase;
+    const w = playRef ? playRef.current : 0;
     const tap = (1 - w) * 0.012;
     const j = joints.current;
     ['elbowL', 'elbowR', 'handL', 'handR'].forEach(k => { j[k] = lerp3(POSES.type[k], POSES.play[k], w); });
@@ -95,13 +102,15 @@ const Person = ({ playRef, wrapHeadphones = (node) => node }) => {
     if (head.current) {
       head.current.position.y = Math.sin(t * 2.4) * 0.006;
       head.current.rotation.z = 0.12 - w * 0.08;
+      // 女生偶爾歪頭看一下程式
+      if (girl) head.current.rotation.x = Math.sin(t * 0.35) * 0.08;
     }
   });
 
   const get = (k) => () => joints.current[k];
 
   return (
-    <group>
+    <group position={[0, 0, z]}>
       {/* 腿：大腿往前伸到桌下、小腿往下 */}
       {[1, -1].map(side => (
         <group key={side}>
@@ -113,7 +122,7 @@ const Person = ({ playRef, wrapHeadphones = (node) => node }) => {
 
       {/* 身體（帽 T，微微往前傾） */}
       <Box p={[1.17, 0.8, CENTER_Z]} s={[0.24, 0.52, 0.42]} c={HOODIE} r={0.09} rot={[0, 0, 0.12]} />
-      <Box p={[1.24, 1.02, CENTER_Z]} s={[0.1, 0.1, 0.24]} c="#34344c" r={0.045} />
+      <Box p={[1.24, 1.02, CENTER_Z]} s={[0.1, 0.1, 0.24]} c={look.collar} r={0.045} />
       <mesh position={[1.13, 1.08, CENTER_Z]} castShadow>
         <cylinderGeometry args={[0.045, 0.05, 0.09, 14]} />
         <Clay color={SKIN} />
@@ -128,9 +137,27 @@ const Person = ({ playRef, wrapHeadphones = (node) => node }) => {
       <Hand get={get('handR')} />
 
       {/* 拿在手上的手把（打遊戲時才出現） */}
-      <group ref={controller} visible={false}>
-        <XboxController rotation={[0, 0, -0.5]} />
-      </group>
+      {!girl && (
+        <group ref={controller} visible={false}>
+          {wrapController(<XboxController rotation={[0, 0, -0.5]} />)}
+        </group>
+      )}
+
+      {/* 長髮披在背上（頭的後面是 +x），兩側垂到肩膀前 */}
+      {girl && (
+        <group position={[1.09, 1.21, CENTER_Z]}>
+          <mesh position={[0.08, -0.2, 0]} scale={[0.07, 0.3, 0.13]} castShadow>
+            <sphereGeometry args={[1, 24, 18]} />
+            <Clay color={HAIR} />
+          </mesh>
+          {[1, -1].map(side => (
+            <mesh key={side} position={[0.02, -0.14, side * 0.1]} scale={[0.05, 0.21, 0.035]} rotation={[side * 0.12, 0, 0]} castShadow>
+              <sphereGeometry args={[1, 18, 14]} />
+              <Clay color={HAIR} />
+            </mesh>
+          ))}
+        </group>
+      )}
 
       {/* 頭、頭髮、耳朵、耳機 */}
       <group position={[1.09, 1.21, CENTER_Z]}>
@@ -147,7 +174,14 @@ const Person = ({ playRef, wrapHeadphones = (node) => node }) => {
             <sphereGeometry args={[0.108, 24, 18, Math.PI * 0.5, Math.PI, 0, Math.PI * 0.8]} />
             <Clay color={HAIR} />
           </mesh>
-          {wrapHeadphones(
+          {/* 女生的瀏海 */}
+          {girl && (
+            <mesh position={[-0.02, 0.05, 0]} scale={[1, 0.75, 1.06]}>
+              <sphereGeometry args={[0.112, 28, 20, Math.PI * 1.5, Math.PI, 0, Math.PI * 0.45]} />
+              <Clay color={HAIR} />
+            </mesh>
+          )}
+          {!girl && wrapHeadphones(
             <group>
             <mesh rotation={[0, Math.PI / 2, 0]} position={[0, 0.005, 0]} castShadow>
               <torusGeometry args={[0.128, 0.015, 12, 36, Math.PI]} />

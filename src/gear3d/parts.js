@@ -2,8 +2,8 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
-import { useGrainTexture, useStaticTexture, useAnimatedTexture, useLabelTexture } from './textures';
-import { drawAllyScreen, drawMacScreen, drawIpadScreen } from './screens';
+import { useGrainTexture, useStaticTexture, useAnimatedTexture, useLabelTexture, useOakTexture } from './textures';
+import { drawAllyScreen, drawMacScreen, drawIpadScreen, drawGameCover, drawGameSpine } from './screens';
 
 // 共用零件：霧面黏土材質的圓角方塊、自發光材質、RGB 燈條
 // 座標單位是公尺；房間 x 沿右牆、z 沿左牆、y 朝上，原點在地板最裡面的牆角
@@ -129,7 +129,56 @@ export const XboxController = (props) => (
   </group>
 );
 
+// Razer Cobra Pro 黑色無線滑鼠（按鍵朝 -x）：小巧的對稱外殼、滾輪、底部一圈 RGB 底光、綠色 Razer 標誌
+export const RazerCobraPro = (props) => (
+  <group {...props}>
+    {/* 底部 RGB 底光：比外殼大一圈的發光橢圓，從邊緣透出來 */}
+    <mesh position={[0, 0.0012, 0]} scale={[0.0615, 1, 0.0322]}>
+      <cylinderGeometry args={[1, 1, 0.0018, 48]} />
+      <RgbGlowMaterial speed={0.12} />
+    </mesh>
+    <mesh position={[0, 0.004, 0]} scale={[0.059, 1, 0.0305]} castShadow>
+      <cylinderGeometry args={[1, 1, 0.005, 48]} />
+      <meshStandardMaterial color="#0d0d10" roughness={0.6} />
+    </mesh>
+    {/* 外殼：後半部比較高 */}
+    <mesh position={[0.004, 0.006, 0]} scale={[0.059, 0.032, 0.0305]} castShadow>
+      <sphereGeometry args={[1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <meshStandardMaterial color="#141418" roughness={0.55} />
+    </mesh>
+    {/* 左右鍵的分隔線 */}
+    <mesh position={[-0.034, 0.0325, 0]} rotation={[0, 0, 0.32]}>
+      <boxGeometry args={[0.04, 0.0012, 0.0016]} />
+      <meshStandardMaterial color="#050506" roughness={0.8} />
+    </mesh>
+    {/* 滾輪（帶 RGB） */}
+    <mesh position={[-0.03, 0.035, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[0.0075, 0.0075, 0.006, 20]} />
+      <RgbGlowMaterial speed={0.12} offset={0.3} />
+    </mesh>
+    {/* 綠色 Razer 標誌 */}
+    <mesh position={[0.026, 0.0335, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[0.0055, 20]} />
+      <Glow color="#44d62c" strength={1.8} />
+    </mesh>
+  </group>
+);
+
 // Galaxy S25 Ultra 鈦藍，背面朝上平放（長邊沿 z，鏡頭在 -z 端靠 -x）
+// 一般的無線滑鼠（女生用的白色款）
+export const Mouse = ({ color = '#f2f0ec', ...props }) => (
+  <group {...props}>
+    <mesh position={[0, 0.003, 0]} scale={[0.056, 0.03, 0.032]} castShadow>
+      <sphereGeometry args={[1, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <meshStandardMaterial color={color} roughness={0.5} />
+    </mesh>
+    <mesh position={[-0.03, 0.029, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[0.006, 0.006, 0.005, 16]} />
+      <meshStandardMaterial color="#b9b4bd" roughness={0.6} />
+    </mesh>
+  </group>
+);
+
 export const Phone = (props) => {
   const big = [-0.07, -0.042, -0.014];
   return (
@@ -224,6 +273,140 @@ export const EdifierSpeaker = (props) => {
   );
 };
 
+// Switch 2 遊戲盒（紅色）：本身座標是封面朝 +z、側邊在 -x；寬 10.5cm、高 17cm、厚 1.4cm
+// cover：有封面圖時才畫封面（封面朝外擺放用），title：側邊直書的遊戲名稱
+export const GameCase = ({ cover, title, ...props }) => {
+  const spine = useStaticTexture(64, 768, drawGameSpine(title), [title]);
+  const coverTex = useStaticTexture(320, 512, cover ? drawGameCover(cover) : () => {}, [cover]);
+  return (
+    <group {...props}>
+      <Box p={[0, 0, 0]} s={[0.105, 0.17, 0.014]} c="#d4000f" r={0.003} rough={0.45} />
+      {cover && (
+        <Panel p={[0, 0, 0.0072]} size={[0.103, 0.168]}>
+          <meshStandardMaterial map={coverTex} roughness={0.35} />
+        </Panel>
+      )}
+      <Panel p={[-0.0528, 0, 0]} size={[0.014, 0.168]} rot={[0, -Math.PI / 2, 0]}>
+        <meshStandardMaterial map={spine} roughness={0.4} />
+      </Panel>
+    </group>
+  );
+};
+
+// IKEA BLÅHAJ 鯊魚娃娃（約 1 公尺長）：本身座標頭朝 +x，藍色絨布、白肚子、背鰭、胸鰭、月牙形尾巴
+const Plush = ({ color, ...props }) => (
+  <mesh castShadow receiveShadow {...props}>
+    <sphereGeometry args={[1, 28, 20]} />
+    <Clay color={color} sheen />
+  </mesh>
+);
+
+export const Blahaj = (props) => {
+  const BLUE = '#3d7f99';
+  const WHITE = '#f1efe9';
+  return (
+    <group {...props}>
+      {/* 身體：前段較粗、往尾巴變細 */}
+      <Plush color={BLUE} position={[0.08, 0, 0]} scale={[0.36, 0.13, 0.13]} />
+      <Plush color={BLUE} position={[-0.28, 0.01, 0]} scale={[0.24, 0.08, 0.08]} />
+      {/* 白肚子（從下方露出來） */}
+      <Plush color={WHITE} position={[0.12, -0.035, 0]} scale={[0.32, 0.1, 0.118]} />
+      {/* 背鰭 */}
+      <mesh position={[0.02, 0.17, 0]} rotation={[0, 0, -0.35]} scale={[1, 1, 0.28]} castShadow>
+        <coneGeometry args={[0.07, 0.15, 20]} />
+        <Clay color={BLUE} sheen />
+      </mesh>
+      {/* 尾巴前的小背鰭 */}
+      <mesh position={[-0.33, 0.085, 0]} rotation={[0, 0, -0.5]} scale={[1, 1, 0.3]} castShadow>
+        <coneGeometry args={[0.025, 0.05, 12]} />
+        <Clay color={BLUE} sheen />
+      </mesh>
+      {/* 胸鰭（左右各一） */}
+      {[1, -1].map(side => (
+        <Plush key={side} color={BLUE} position={[0.08, -0.09, side * 0.12]} rotation={[side * 0.5, 0.3 * side, -0.4]} scale={[0.1, 0.022, 0.06]} />
+      ))}
+      {/* 月牙形尾鰭 */}
+      <Plush color={BLUE} position={[-0.53, 0.08, 0]} rotation={[0, 0, -0.75]} scale={[0.13, 0.035, 0.03]} />
+      <Plush color={BLUE} position={[-0.52, -0.04, 0]} rotation={[0, 0, 0.6]} scale={[0.09, 0.03, 0.028]} />
+      {/* 眼睛 */}
+      {[1, -1].map(side => (
+        <mesh key={side} position={[0.33, 0.035, side * 0.085]}>
+          <sphereGeometry args={[0.012, 12, 10]} />
+          <meshStandardMaterial color="#141418" roughness={0.25} />
+        </mesh>
+      ))}
+      {/* 嘴巴：粉紅色＋一排白牙 */}
+      <Plush color="#e98a8a" position={[0.37, -0.045, 0]} scale={[0.04, 0.012, 0.07]} />
+      <mesh position={[0.385, -0.038, 0]} scale={[0.03, 0.006, 0.062]}>
+        <sphereGeometry args={[1, 16, 10]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.6} />
+      </mesh>
+    </group>
+  );
+};
+
+// 寶貝球（擺飾）
+export const PokeBall = (props) => (
+  <group {...props}>
+    <mesh castShadow>
+      <sphereGeometry args={[0.045, 28, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <meshStandardMaterial color="#e53935" roughness={0.35} />
+    </mesh>
+    <mesh castShadow rotation={[Math.PI, 0, 0]}>
+      <sphereGeometry args={[0.045, 28, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      <meshStandardMaterial color="#f5f5f5" roughness={0.35} />
+    </mesh>
+    <mesh rotation={[Math.PI / 2, 0, 0]}>
+      <torusGeometry args={[0.045, 0.004, 8, 40]} />
+      <meshStandardMaterial color="#1c1c1e" roughness={0.5} />
+    </mesh>
+    <mesh position={[0, 0, 0.044]} rotation={[Math.PI / 2, 0, 0]}>
+      <cylinderGeometry args={[0.012, 0.012, 0.006, 20]} />
+      <meshStandardMaterial color="#f5f5f5" roughness={0.3} />
+    </mesh>
+  </group>
+);
+
+// 木製電視櫃（白橡木、三格開放式收納，參考 IKEA BESTÅ 的樣子）
+// 中心點在 (cx, 0, cz)：寬 1.36、高 0.34、深 0.3，四角有小腳
+export const TvBench = ({ cx = 3.2, cz = 0.16, children }) => {
+  const oak = useOakTexture();
+  const W = 1.36;
+  const H = 0.34;
+  const D = 0.3;
+  const t = 0.028;
+  const left = cx - W / 2;
+  const cell = (W - t * 2 - t * 2) / 3;
+  const dividers = [left + t + cell + t / 2, left + t + cell * 2 + t * 1.5];
+  return (
+    <group>
+      {/* 頂板、底板、兩側、隔板、背板 */}
+      <Box p={[cx, H - t / 2, cz]} s={[W, t, D]} c="#ffffff" map={oak} r={0.006} rough={0.7} />
+      <Box p={[cx, 0.03 + t / 2, cz]} s={[W, t, D]} c="#ffffff" map={oak} r={0.006} rough={0.7} />
+      {[left + t / 2, cx + W / 2 - t / 2].map(x => (
+        <Box key={x} p={[x, (H + 0.03) / 2, cz]} s={[t, H - 0.03, D]} c="#ffffff" map={oak} r={0.006} rough={0.7} />
+      ))}
+      {dividers.map(x => (
+        <Box key={x} p={[x, (H + 0.03) / 2, cz - 0.005]} s={[t * 0.85, H - 0.03 - t * 2, D - 0.01]} c="#ffffff" map={oak} r={0.004} rough={0.7} />
+      ))}
+      <Box p={[cx, (H + 0.03) / 2, cz - D / 2 + 0.006]} s={[W - 0.01, H - 0.04, 0.008]} c="#e9dcc4" map={oak} r={0.002} rough={0.8} />
+      {/* 中間那格背板的走線孔 */}
+      <mesh position={[cx, 0.12, cz - D / 2 + 0.0105]}>
+        <planeGeometry args={[0.1, 0.03]} />
+        <meshStandardMaterial color="#3a2f25" roughness={0.9} />
+      </mesh>
+      {/* 小腳 */}
+      {[[left + 0.05, cz - D / 2 + 0.04], [left + 0.05, cz + D / 2 - 0.04], [left + W - 0.05, cz - D / 2 + 0.04], [left + W - 0.05, cz + D / 2 - 0.04]].map(([x, z]) => (
+        <mesh key={`${x}-${z}`} position={[x, 0.015, z]} castShadow>
+          <cylinderGeometry args={[0.015, 0.015, 0.03, 12]} />
+          <meshStandardMaterial color="#8a7a66" roughness={0.6} />
+        </mesh>
+      ))}
+      {children({ left, cell, t, floorY: 0.03 + t, cz, depth: D })}
+    </group>
+  );
+};
+
 // MacBook Air M1（銀色，螢幕面向 +x）
 export const MacBook = (props) => {
   const screen = useStaticTexture(320, 200, drawMacScreen);
@@ -248,8 +431,10 @@ export const IPad = (props) => {
   return (
     <group {...props}>
       <Box p={[0, 0, 0]} s={[0.25, 0.008, 0.18]} c="#2c2e35" r={0.008} rough={0.5} />
+      {/* 正面黑色玻璃：四周留一圈約 1.5 公分的黑邊框（像實機），外面露出一點機身的金屬邊 */}
+      <Box p={[0, 0.0042, 0]} s={[0.242, 0.0012, 0.172]} c="#08080a" r={0.0006} rough={0.25} />
       {/* 螢幕平躺朝上，長邊和機身長邊同方向（沿 x） */}
-      <Panel p={[0, 0.0045, 0]} size={[0.235, 0.165]} rot={[-Math.PI / 2, 0, 0]}><Glow color="#ffffff" strength={1.1} map={screen} /></Panel>
+      <Panel p={[0, 0.0049, 0]} size={[0.212, 0.142]} rot={[-Math.PI / 2, 0, 0]}><Glow color="#ffffff" strength={1.1} map={screen} /></Panel>
     </group>
   );
 };

@@ -261,4 +261,8 @@ export const gear = [
   { key: 'switch2', category: '掌機', name: 'Nintendo Switch 2', specs: [] },
   { key: 'headphones', category: '耳機', name: 'Sony WH-1000XM6', specs: [] },
   { key: 'speakers', category: '喇叭', name: 'Edifier M90', specs: ['黑色 · 一對'] },
+  { key: 'games', category: '遊戲片', name: 'Switch 2 遊戲', specs: ['Pokémon Pokopia', '薩爾達傳說 王國之淚', '薩爾達傳說 曠野之息'] },
+  { key: 'mouse', category: '滑鼠', name: 'Razer Cobra Pro', specs: ['黑色'] },
+  { key: 'controller', category: '手把', name: 'Xbox Controller', specs: [] },
+  { key: 'shark', category: '玩偶', name: 'IKEA BLÅHAJ 鯊魚', specs: ['100 公分'] },
 ];

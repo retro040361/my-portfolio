@@ -782,6 +782,89 @@ export const drawIpadScreen = (ctx, w, h) => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 };
 
+// ---------- Switch 2 遊戲盒（紅色盒子）：封面與側邊；封面是簡化示意圖，不是官方圖 ----------
+const caseHeader = (ctx, w, top) => {
+  ctx.fillStyle = '#e60012';
+  ctx.fillRect(0, 0, w, top);
+  ctx.fillStyle = '#ffffff';
+  const s = top * 0.55;
+  const x = w / 2 - s * 1.1;
+  const y = top * 0.18;
+  ipadRound(ctx, x, y, s * 0.45, s, s * 0.18); ctx.fill();
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = s * 0.08;
+  ipadRound(ctx, x + s * 0.5, y, s * 0.45, s, s * 0.18); ctx.stroke();
+  ctx.font = `900 ${s * 1.05}px Arial, sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('2', x + s * 1.1, y - s * 0.05);
+  ctx.font = `700 ${top * 0.13}px Arial, sans-serif`; ctx.textAlign = 'center';
+  ctx.fillText('NINTENDO SWITCH', w / 2, y + s + top * 0.04);
+  ctx.textBaseline = 'alphabetic';
+};
+
+const COVER_ART = {
+  // 寶可夢 Pokopia：草地小鎮、樹、池塘、紅屋頂的房子
+  pokopia: (ctx, x, y, w, h) => {
+    ctx.fillStyle = '#7cc45a'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#e7d3a0';
+    ctx.fillRect(x + w * 0.45, y, w * 0.12, h); ctx.fillRect(x, y + h * 0.55, w, h * 0.07);
+    ctx.fillStyle = '#5fb0e8';
+    ctx.beginPath(); ctx.ellipse(x + w * 0.2, y + h * 0.82, w * 0.2, h * 0.09, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2f6f3a';
+    [[0.1, 0.08], [0.25, 0.14], [0.08, 0.32], [0.82, 0.38], [0.9, 0.86], [0.62, 0.92], [0.33, 0.62]].forEach(([px, py]) => {
+      ctx.beginPath(); ctx.arc(x + w * px, y + h * py, w * 0.075, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.fillStyle = '#f4efe6'; ctx.fillRect(x + w * 0.66, y + h * 0.13, w * 0.26, h * 0.11);
+    ctx.fillStyle = '#e53935';
+    ctx.beginPath(); ctx.moveTo(x + w * 0.62, y + h * 0.14); ctx.lineTo(x + w * 0.79, y + h * 0.05); ctx.lineTo(x + w * 0.96, y + h * 0.14); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ipadRound(ctx, x + w * 0.08, y + h * 0.28, w * 0.84, h * 0.2, w * 0.08); ctx.fill();
+    ctx.font = `900 ${w * 0.085}px Arial, sans-serif`; ctx.textAlign = 'center';
+    ctx.fillStyle = '#2a64c5'; ctx.fillText('Pokémon', x + w * 0.5, y + h * 0.35);
+    const letters = ['#e53935', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#14b8a6'];
+    ctx.font = `900 ${w * 0.15}px Arial, sans-serif`;
+    const word = 'Pokopia';
+    const total = ctx.measureText(word).width;
+    let cx = x + w * 0.5 - total / 2;
+    ctx.textAlign = 'left';
+    [...word].forEach((ch, i) => { ctx.fillStyle = letters[i]; ctx.fillText(ch, cx, y + h * 0.455); cx += ctx.measureText(ch).width; });
+  },
+  // 王國之淚
+  totk: (ctx, x, y, w, h) => {
+    const g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, '#6fb4ea'); g.addColorStop(0.6, '#f3d9a8'); g.addColorStop(1, '#4f7a46');
+    ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#5f8f4f'; ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h * 0.4, w * 0.32, h * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7a6248'; ctx.beginPath(); ctx.moveTo(x + w * 0.2, y + h * 0.41); ctx.lineTo(x + w * 0.8, y + h * 0.41); ctx.lineTo(x + w * 0.5, y + h * 0.55); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = `700 ${w * 0.16}px Georgia, serif`; ctx.textAlign = 'center';
+    ctx.fillText('ZELDA', x + w * 0.5, y + h * 0.2);
+    ctx.font = `600 ${w * 0.06}px Georgia, serif`; ctx.fillText('TEARS OF THE KINGDOM', x + w * 0.5, y + h * 0.27);
+  },
+};
+
+export const drawGameCover = (variant) => (ctx, w, h) => {
+  ctx.fillStyle = '#e60012'; ctx.fillRect(0, 0, w, h);
+  const top = h * 0.12;
+  caseHeader(ctx, w, top);
+  const pad = w * 0.035;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(pad, top, w - pad * 2, h - top - pad); ctx.clip();
+  COVER_ART[variant](ctx, pad, top, w - pad * 2, h - top - pad);
+  ctx.restore();
+};
+
+// 側邊：紅底白字，直書的遊戲名稱
+export const drawGameSpine = (title) => (ctx, w, h) => {
+  ctx.fillStyle = '#e60012'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${w * 0.55}px Arial, sans-serif`; ctx.textAlign = 'center';
+  ctx.fillText('2', w / 2, w * 0.75);
+  ctx.save();
+  ctx.translate(w / 2, h * 0.55);
+  ctx.rotate(Math.PI / 2);
+  ctx.font = `700 ${w * 0.42}px Arial, sans-serif`;
+  ctx.fillText(title, 0, w * 0.15);
+  ctx.restore();
+};
+
 // 霓虹字 RETRO//SPACE
 export const drawNeonText = (ctx, w, h) => {
   ctx.clearRect(0, 0, w, h);
