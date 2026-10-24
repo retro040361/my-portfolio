@@ -1,0 +1,711 @@
+/* ==========================================================================
+   DedSec 主題（Watch Dogs 2）
+   深色：DedSec 駭客風格 — 黑底、螢光洋紅 / 青 / 黃、故障效果、HUD 角框
+   淺色：ctOS 系統介面（Watch Dogs 1 的 Blume 企業風格）
+   載入順序在 ui.css 之後，只覆寫外觀，不改版面
+   ========================================================================== */
+
+[data-theme='dark'] {
+  --bg-global: #07070a;
+  --text-primary: #f4f4f6;
+  --text-secondary: #d4d4dc;
+  --text-muted: #8a8a9a;
+  --card-bg: #0d0d12;
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-shadow: rgba(0, 0, 0, 0.6);
+  --navbar-bg: rgba(7, 7, 10, 0.88);
+  --navbar-border: rgba(255, 255, 255, 0.08);
+  --modal-bg: #0b0b10;
+  --divider: rgba(255, 255, 255, 0.1);
+  --badge-bg: rgba(255, 255, 255, 0.04);
+  --badge-border: rgba(255, 255, 255, 0.14);
+  --quote-bg: rgba(255, 31, 143, 0.06);
+
+  --accent: #ff1f8f;          /* DedSec 洋紅 */
+  --accent-soft: rgba(255, 31, 143, 0.14);
+  --accent-2: #00e5ff;        /* 駭客青 */
+  --accent-3: #e8ff00;        /* 螢光黃 */
+  --tech-color: #00e5ff;
+  --life-color: #ff1f8f;
+  --grid-line: rgba(255, 255, 255, 0.035);
+}
+
+[data-theme='light'] {
+  --bg-global: #eceff2;
+  --text-primary: #0b0d10;
+  --text-secondary: #262a30;
+  --text-muted: #5d6570;
+  --card-bg: #ffffff;
+  --card-border: rgba(11, 13, 16, 0.14);
+  --card-shadow: rgba(11, 13, 16, 0.08);
+  --navbar-bg: rgba(255, 255, 255, 0.9);
+  --modal-bg: #ffffff;
+  --divider: rgba(11, 13, 16, 0.1);
+  --quote-bg: rgba(0, 150, 180, 0.06);
+
+  --accent: #0091b3;          /* ctOS 青 */
+  --accent-soft: rgba(0, 145, 179, 0.12);
+  --accent-2: #e0007a;
+  --accent-3: #b8c400;
+  --tech-color: #0091b3;
+  --life-color: #c2006a;
+  --grid-line: rgba(11, 13, 16, 0.05);
+}
+
+:root {
+  --font-display: 'Chakra Petch', 'Noto Sans TC', sans-serif;
+  --font-pixel: 'VT323', 'JetBrains Mono', monospace;
+  --hud-size: 12px;
+}
+
+::selection {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ---------- 背景：細格線 + 掃描線 ---------- */
+body {
+  background-color: var(--bg-global);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+[data-theme='dark'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2000;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+}
+
+/* ---------- 字型 ---------- */
+/* 內文與標題同一套字型；Chakra Petch 只有英數，中文會 fallback 到 Noto Sans TC */
+body,
+button,
+input,
+textarea {
+  font-family: var(--font-display);
+}
+
+h1, h2, h3, h4,
+.logo,
+.project-title,
+.modal-title,
+.post-title {
+  font-family: var(--font-display);
+}
+
+.hero-section h1,
+.projects-header h1,
+.playground-header h1,
+.blog-header-wrapper h1 {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.path-label,
+.modal-section-heading,
+.modal-meta-label,
+.post-date,
+.timeline-period,
+.concert-date,
+.game-progress-value {
+  font-family: var(--font-mono);
+}
+
+/* ---------- 故障（glitch）標題 ---------- */
+.glitch {
+  position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.glitch::before {
+  color: var(--accent-2);
+  transform: translate(-2px, 0);
+  clip-path: inset(0 0 100% 0);
+  animation: glitchTop 4.5s infinite steps(1);
+  mix-blend-mode: screen;
+}
+
+.glitch::after {
+  color: var(--accent);
+  transform: translate(2px, 0);
+  clip-path: inset(100% 0 0 0);
+  animation: glitchBottom 4.5s infinite steps(1);
+  mix-blend-mode: screen;
+}
+
+[data-theme='light'] .glitch::before,
+[data-theme='light'] .glitch::after {
+  mix-blend-mode: multiply;
+}
+
+@keyframes glitchTop {
+  0%, 86%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0, 0); }
+  87% { clip-path: inset(8% 0 62% 0); transform: translate(-4px, -1px); }
+  89% { clip-path: inset(40% 0 35% 0); transform: translate(3px, 0); }
+  91% { clip-path: inset(70% 0 8% 0); transform: translate(-3px, 1px); }
+  93% { clip-path: inset(20% 0 55% 0); transform: translate(2px, 0); }
+}
+
+@keyframes glitchBottom {
+  0%, 86%, 100% { clip-path: inset(100% 0 0 0); transform: translate(0, 0); }
+  88% { clip-path: inset(55% 0 20% 0); transform: translate(4px, 1px); }
+  90% { clip-path: inset(15% 0 70% 0); transform: translate(-3px, 0); }
+  92% { clip-path: inset(75% 0 5% 0); transform: translate(3px, -1px); }
+  94% { clip-path: inset(35% 0 45% 0); transform: translate(-2px, 0); }
+}
+
+/* ---------- 導覽列 ---------- */
+.navbar {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, var(--accent), var(--accent-2) 60%, transparent) 1;
+}
+
+.logo-prompt {
+  color: var(--accent);
+}
+
+.logo-cursor {
+  background: var(--accent-2);
+}
+
+.nav-links a {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  text-transform: lowercase;
+  border-radius: 0;
+}
+
+.nav-links a::before {
+  content: '';
+}
+
+.nav-links a.active {
+  color: #000;
+  background: var(--accent);
+}
+
+.nav-links a.active::before {
+  content: '> ';
+}
+
+[data-theme='light'] .nav-links a.active {
+  color: #fff;
+}
+
+.theme-toggle-btn,
+.nav-menu-btn {
+  border-radius: 0;
+}
+
+/* ---------- HUD 角框卡片 ---------- */
+.project-card-glass,
+.about-section-card,
+.about-profile-card,
+.concert-item,
+.post-pagination-link,
+.post-toc,
+.modal-box {
+  border-radius: 0;
+  box-shadow: none;
+  background:
+    linear-gradient(var(--accent), var(--accent)) top left / var(--hud-size) 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) top left / 2px var(--hud-size) no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom right / var(--hud-size) 2px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) bottom right / 2px var(--hud-size) no-repeat,
+    var(--card-bg);
+}
+
+.project-card-glass:hover,
+.concert-item:hover,
+.post-pagination-link:hover {
+  border-color: var(--accent);
+  box-shadow: 5px 5px 0 var(--accent);
+}
+
+[data-theme='light'] .project-card-glass:hover,
+[data-theme='light'] .concert-item:hover,
+[data-theme='light'] .post-pagination-link:hover {
+  box-shadow: 5px 5px 0 var(--text-primary);
+}
+
+.project-card-wrapper {
+  border-radius: 0;
+  overflow: visible;
+}
+
+.project-banner,
+.post-cover,
+.modal-banner,
+.blog-post-hero-banner,
+.concert-thumb {
+  border-radius: 0;
+  position: relative;
+}
+
+/* 封面圖加掃描線，滑過時拉高對比 */
+.project-banner::after,
+.post-cover::after,
+.blog-post-hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+}
+
+.card-banner-img,
+.post-cover img {
+  filter: saturate(0.85) contrast(1.05);
+  transition: filter 0.25s ease, transform 0.4s ease;
+}
+
+.project-card-glass:hover .card-banner-img,
+.post-card-link:hover .post-cover img {
+  filter: saturate(1.25) contrast(1.15) drop-shadow(3px 0 0 rgba(255, 31, 143, 0.5)) drop-shadow(-3px 0 0 rgba(0, 229, 255, 0.5));
+}
+
+/* 取代 emoji 的程式碼橫幅 */
+.code-banner {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-pixel);
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--accent-3);
+  text-shadow: 2px 0 0 var(--accent), -2px 0 0 var(--accent-2);
+  letter-spacing: 1px;
+}
+
+.code-banner::before {
+  content: '$ ';
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.code-banner-lg {
+  font-size: 3.4rem;
+}
+
+/* ---------- 按鈕 / 標籤 ---------- */
+.filter-btn {
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-transform: lowercase;
+}
+
+.filter-btn.active {
+  color: #000;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-2);
+}
+
+[data-theme='light'] .filter-btn.active {
+  color: #fff;
+  box-shadow: 3px 3px 0 var(--text-primary);
+}
+
+.project-tech-tag,
+.post-category-tag,
+.travel-tag-pill,
+.game-status-badge,
+.timeline-tag-badge,
+.timeline-period,
+.skill-tag-card,
+.card-platform-tag,
+.card-date-tag,
+.modal-status-badge,
+.project-repo-btn,
+.project-private-badge,
+.social-btn,
+.back-to-list-btn {
+  border-radius: 0 !important;
+}
+
+.project-tech-tag,
+.post-category-tag,
+.game-status-badge,
+.timeline-tag-badge,
+.card-platform-tag,
+.card-date-tag,
+.modal-status-badge,
+.travel-tag-pill {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.3px;
+}
+
+.project-tech-tag {
+  background: transparent;
+  color: var(--accent-2);
+  border: 1px solid currentColor;
+}
+
+[data-theme='light'] .project-tech-tag {
+  color: var(--accent);
+}
+
+.post-category-tag.tech,
+[data-theme='dark'] .post-category-tag.tech {
+  color: var(--tech-color);
+  background: transparent;
+  border-color: currentColor;
+}
+
+.post-category-tag.life,
+[data-theme='dark'] .post-category-tag.life {
+  color: var(--life-color);
+  background: transparent;
+  border-color: currentColor;
+}
+
+.post-category-tag::before {
+  content: '#';
+  opacity: 0.6;
+}
+
+/* 文章標籤、草稿標記、標籤篩選列 */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.post-header-meta .post-tags {
+  justify-content: inherit;
+}
+
+.post-tag {
+  padding: 2px 8px;
+  text-decoration: none;
+}
+
+.post-tag::before {
+  content: '//';
+  margin-right: 4px;
+  opacity: 0.6;
+}
+
+a.post-tag:hover {
+  background: currentColor;
+  color: var(--bg-global);
+}
+
+a.post-tag:hover::before {
+  color: var(--bg-global);
+}
+
+.post-draft-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  color: #f5b301;
+  border: 1px dashed currentColor;
+}
+
+.blog-active-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.blog-active-tag strong {
+  color: var(--accent);
+}
+
+.game-status-badge.is-playing {
+  color: var(--accent-3);
+  background: transparent;
+  border-color: currentColor;
+}
+
+[data-theme='light'] .game-status-badge.is-playing {
+  color: #8a6d00;
+}
+
+.progress-bar-wrapper,
+.progress-bar-fill {
+  border-radius: 0;
+}
+
+.project-repo-btn {
+  color: #000;
+  font-family: var(--font-mono);
+  box-shadow: 3px 3px 0 var(--accent-2);
+}
+
+[data-theme='light'] .project-repo-btn {
+  color: #fff;
+}
+
+/* ---------- 首頁 ---------- */
+.hero-section h1 {
+  font-weight: 700;
+}
+
+.hero-intro {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--accent-2);
+}
+
+[data-theme='light'] .hero-intro {
+  color: var(--accent);
+}
+
+/* ---------- 頁面標題 ---------- */
+.blog-header-wrapper {
+  border-bottom: 1px dashed var(--divider);
+}
+
+.path-label {
+  color: var(--accent-2);
+}
+
+[data-theme='light'] .path-label {
+  color: var(--accent);
+}
+
+/* ---------- About ---------- */
+.about-avatar-wrapper {
+  border-radius: 0;
+  border: 2px solid var(--accent);
+  box-shadow: 6px 6px 0 var(--accent-soft);
+  position: relative;
+}
+
+.about-avatar {
+  filter: grayscale(0.2) contrast(1.05);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px dashed var(--divider);
+}
+
+.section-index {
+  font-family: var(--font-pixel);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 2px 6px;
+  color: #000;
+  background: var(--accent);
+}
+
+[data-theme='light'] .section-index {
+  color: #fff;
+}
+
+.retro-quote {
+  border-left-color: var(--accent);
+}
+
+/* Profiler 掃描資料 */
+.profiler {
+  margin: 0 0 22px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border: 1px solid var(--accent-2);
+  background: rgba(0, 229, 255, 0.04);
+}
+
+[data-theme='light'] .profiler {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.profiler-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+  color: #000;
+  background: var(--accent-2);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+[data-theme='light'] .profiler-header {
+  color: #fff;
+  background: var(--accent);
+}
+
+.profiler-status {
+  animation: logoBlink 1.4s steps(1) infinite;
+}
+
+.profiler-list {
+  margin: 0;
+  padding: 8px 10px 10px;
+}
+
+.profiler-list div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.profiler-list dt {
+  color: var(--text-muted);
+}
+
+.profiler-list dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.skill-tag-card {
+  background: transparent;
+}
+
+.skill-dot {
+  border-radius: 0;
+}
+
+/* 時間軸的點改成方塊 */
+.timeline-dot,
+.concert-dot,
+.concert-year::before {
+  border-radius: 0;
+}
+
+.concert-year::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.concert-year {
+  font-family: var(--font-pixel);
+  font-size: 2rem;
+  color: var(--accent-3);
+}
+
+[data-theme='light'] .concert-year {
+  color: var(--accent);
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  background-color: rgba(4, 4, 6, 0.88);
+}
+
+.modal-window-header {
+  background: var(--accent);
+  border-bottom: none;
+}
+
+.modal-window-title {
+  color: #000;
+  font-weight: 700;
+}
+
+[data-theme='light'] .modal-window-title {
+  color: #fff;
+}
+
+.modal-section-heading {
+  color: var(--accent-2);
+  text-transform: none;
+}
+
+[data-theme='light'] .modal-section-heading {
+  color: var(--accent);
+}
+
+/* ---------- 文章頁 ---------- */
+.reading-progress {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.post-toc li.active button {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+.markdown-h2 {
+  border-bottom: 1px dashed var(--accent);
+}
+
+.markdown-h2::before {
+  content: '## ';
+  font-family: var(--font-mono);
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.markdown-pre {
+  border-radius: 0;
+  border-left: 3px solid var(--accent-2);
+}
+
+.markdown-img,
+.markdown-content img,
+.post-content img {
+  border-radius: 0 !important;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  border-top: 1px dashed var(--divider);
+}
+
+.footer-prompt {
+  color: var(--accent);
+}
+
+.post-toc {
+  padding: 14px 12px;
+}
+
+/* 社群按鈕統一為外框樣式，避免各品牌色打亂主題 */
+.social-btn,
+.social-btn.github,
+.social-btn.email,
+.social-btn.linkedin,
+.social-btn.instagram,
+.social-btn.facebook {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  justify-content: flex-start;
+  padding: 10px 14px;
+}
+
+.social-btn:hover,
+.social-btn.github:hover,
+.social-btn.email:hover,
+.social-btn.linkedin:hover,
+.social-btn.instagram:hover,
+.social-btn.facebook:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}

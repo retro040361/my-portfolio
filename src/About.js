@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import './App.css';
+import { motion } from 'motion/react';
+import { socialLinks } from './data/profile';
 
 // 定義 stagger 容器動畫
 const containerVariants = {
@@ -36,7 +36,7 @@ const About = () => {
       company: 'Synopsys',
       desc: [
         'L2 engineer.',
-        'Working on the DRC rule creation/maintainance for Legalizer in Fusion Compiler.'
+        'Working on DRC rule creation and maintenance for the Legalizer in Fusion Compiler.'
       ],
       active: true
     },
@@ -62,8 +62,8 @@ const About = () => {
     },
     {
       period: '2021.07 - 2021.12',
-      role: '資訊實習生',
-      company: '國家衛生研究院 (NHRI)',
+      role: 'Intern',
+      company: 'National Health Research Institutes',
       desc: [
         'Analyzed human genome sequencing data detected in Taiwan.',
         'Applied statistical methods to interpret data meanings and establish a risk prediction model for senility.',
@@ -77,11 +77,11 @@ const About = () => {
   const education = [
     {
       period: '2022.09 - 2024.07',
-      degree: '資訊工程學系 碩士',
-      school: '國立清華大學 (NTHU)',
+      degree: 'M.S. in Computer Science',
+      school: 'National Tsing Hua University',
       desc: [
         'Lab of Big Data and Social Network Analysis for Emerging Technology Research',
-        'Research Topic : Maching Learning, Graph Neural Network, Contrastive Learning'
+        'Research Topics: Machine Learning, Graph Neural Network, Contrastive Learning'
       ],
       thesis: {
         title: 'Enhancing Contrastive Link Prediction With Edge Balancing Augmentation',
@@ -93,8 +93,8 @@ const About = () => {
     },
     {
       period: '2019.06 - 2022.06',
-      degree: '理學院學士班',
-      school: '國立清華大學 (NTHU)',
+      degree: 'B.S. in Interdisciplinary Program of Science',
+      school: 'National Tsing Hua University',
       desc: [
         'First major: Data Science',
         'Second major: Computer Science'
@@ -104,25 +104,31 @@ const About = () => {
     },
     {
       period: '2018.09 - 2019.06',
-      degree: '化學系',
-      school: '國立清華大學 (NTHU)',
+      degree: 'Chemistry',
+      school: 'National Tsing Hua University',
       desc: 'Basic courses for College of Science',
       tags: ['Calculus', 'General Chemistry', 'General Physics', 'Lab Techniques'],
       active: false
     }
   ];
 
-  // 技術列表與分類
-  const skills = [
-    { name: 'React', category: 'frontend' },
-    { name: 'JavaScript (ES6+)', category: 'frontend' },
-    { name: 'CSS Flexbox / Grid', category: 'frontend' },
-    { name: 'Framer Motion', category: 'frontend' },
-    { name: 'HTML5 & Semantic UI', category: 'frontend' },
-    { name: 'Git & GitHub', category: 'tools' },
-    { name: 'NPM / Node.js', category: 'tools' },
-    { name: 'Responsive Web Design', category: 'frontend' },
-    { name: 'User Experience (UX)', category: 'design' },
+  // 技術列表：依領域分組
+  const skillGroups = [
+    {
+      key: 'research',
+      title: 'Study',
+      items: ['Python', 'PyTorch', 'Graph Neural Network (GNN)', 'Contrastive Learning', 'Machine Learning'],
+    },
+    {
+      key: 'work',
+      title: 'Work',
+      items: ['C / C++', 'Data Structures & Algorithms', 'Physical Design / Legalization', 'DRC Rules', 'TCL'],
+    },
+    {
+      key: 'Dev Tool',
+      title: 'Dev Tool',
+      items: ['Cursor', 'Claude Code', 'Antigravity', 'VSCode', 'Vim'],
+    },
   ];
 
   return (
@@ -136,51 +142,39 @@ const About = () => {
         {/* 左側：個人 Profile 卡片 */}
         <motion.div className="about-profile-card" variants={itemVariants}>
           <div className="about-avatar-wrapper">
-            <img src={`${process.env.PUBLIC_URL}/Retr0Man.png`} alt="Retro" className="about-avatar" />
+            <img src={`${process.env.PUBLIC_URL}/Retr0Man.webp`} alt="Retro" className="about-avatar" />
           </div>
           <h2>Retro</h2>
           <p className="about-title">Software Engineer @ Synopsys</p>
+
+          {/* Watch Dogs 風格 Profiler 掃描資料 */}
+          <div className="profiler">
+            <div className="profiler-header">
+              <span>PROFILER</span>
+              <span className="profiler-status">SCAN COMPLETE</span>
+            </div>
+            <dl className="profiler-list">
+              <div><dt>NAME</dt><dd>Retro</dd></div>
+              <div><dt>OCCUPATION</dt><dd>Software R&amp;D Engineer</dd></div>
+              <div><dt>AFFILIATION</dt><dd>Synopsys · EDA</dd></div>
+              <div><dt>INCOME</dt><dd>[CLASSIFIED]</dd></div>
+              <div><dt>QUOTE</dt><dd>祝你過得更好，永遠保持安泰</dd></div>
+            </dl>
+          </div>
           <hr className="profile-divider" />
           
           <div className="about-socials">
-            <a 
-              href="https://github.com/dashboard" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="social-btn github"
-            >
-              <span className="social-icon">💻</span> GitHub
-            </a>
-            <a 
-              href="mailto:retro@example.com" 
-              className="social-btn email"
-            >
-              <span className="social-icon">✉️</span> Email
-            </a>
-            <a 
-              href="www.linkedin.com/in/chen-hao-chang-91b3b0227" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="social-btn linkedin"
-            >
-              <span className="social-icon">🔗</span> LinkedIn
-            </a>
-            <a 
-              href="https://www.instagram.com/retr0_tatsuhiro/?hl=zh-tw" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="social-btn instagram"
-            >
-              <span className="social-icon">📸</span> Instagram
-            </a>
-            <a 
-              href="https://www.facebook.com/zhang.chen.hao.600966/" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="social-btn facebook"
-            >
-              <span className="social-icon">👥</span> Facebook
-            </a>
+            {socialLinks.map(({ key, label, href, Icon }) => (
+              <a
+                key={key}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className={`social-btn ${key}`}
+              >
+                <Icon className="social-icon" aria-hidden="true" /> {label}
+              </a>
+            ))}
           </div>
         </motion.div>
 
@@ -188,13 +182,13 @@ const About = () => {
         <div className="about-main-content">
           {/* 我的故事 */}
           <motion.section className="about-section-card" variants={itemVariants}>
-            <h3 className="section-title">📖 From Me To Myself</h3>
+            <h3 className="section-title"><span className="section-index">01</span>From Me To Myself</h3>
             <div className="section-content">
               <p>
-                Hi, I'm Retro. The nickname comes from the charater "Marcus Holloway" in Watch Dogs 2. He is a powerful hacker which inspire me to become a programmer.
+                Hi, I'm Retro. The nickname comes from the character "Marcus Holloway" in Watch Dogs 2, a brilliant hacker who inspired me to become a programmer.
               </p>
               <p>
-                My focus in Master period is AI, especially in Graph Neural Network (GNN) and contrastive learning. But now I work in EDA industry and write algorithm for foundry design rule. Ya.. it is totally different area huh. That's life I guess :) 
+                During my master's, I focused on AI, especially Graph Neural Networks (GNN) and contrastive learning. Now I work in the EDA industry, writing algorithms for foundry design rules. Ya.. totally different area huh. That's life I guess :)
               </p>
               <p className="retro-quote">
                 💬 <i>"Run, don't walk. Either you're running for food, or you are running from being food.”</i> - Jensen Huang
@@ -204,7 +198,7 @@ const About = () => {
 
           {/* 工作經歷 */}
           <motion.section className="about-section-card" variants={itemVariants}>
-            <h3 className="section-title">💼 Experience </h3>
+            <h3 className="section-title"><span className="section-index">02</span>Experience</h3>
             <div className="section-content">
               <div className="about-timeline">
                 {workExperience.map((exp, index) => (
@@ -235,7 +229,7 @@ const About = () => {
 
           {/* 教育學歷 */}
           <motion.section className="about-section-card" variants={itemVariants}>
-            <h3 className="section-title">🎓 Education </h3>
+            <h3 className="section-title"><span className="section-index">03</span>Education</h3>
             <div className="section-content">
               <div className="about-timeline">
                 {education.map((edu, index) => (
@@ -269,7 +263,7 @@ const About = () => {
                       {/* 碩士論文與發表 */}
                       {edu.thesis && (
                         <div className="thesis-box">
-                          <span className="thesis-tag">🏆 Master's Thesis / 碩士論文</span>
+                          <span className="thesis-tag">🏆 Master's Thesis</span>
                           {edu.thesis.link ? (
                             <a 
                               href={edu.thesis.link} 
@@ -297,23 +291,26 @@ const About = () => {
 
           {/* 技術堆疊 */}
           <motion.section className="about-section-card" variants={itemVariants}>
-            <h3 className="section-title">💻 Skills & Tools / 技術工具</h3>
+            <h3 className="section-title"><span className="section-index">04</span>Skills &amp; Tools</h3>
             <div className="section-content">
-              <div className="skills-grid">
-                {skills.map((skill, index) => (
-                  <motion.div
-                    key={index}
-                    className={`skill-tag-card ${skill.category}`}
-                    whileHover={{ 
-                      scale: 1.05, 
-                      y: -3, 
-                      boxShadow: '0 8px 15px rgba(0,0,0,0.1)' 
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <span className="skill-dot"></span>
-                    <span className="skill-name">{skill.name}</span>
-                  </motion.div>
+              <div className="skill-groups">
+                {skillGroups.map(group => (
+                  <div key={group.key} className="skill-group">
+                    <h4 className="skill-group-title">{group.title}</h4>
+                    <div className="skills-grid">
+                      {group.items.map(name => (
+                        <motion.div
+                          key={name}
+                          className={`skill-tag-card ${group.key}`}
+                          whileHover={{ scale: 1.05, y: -3 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <span className="skill-dot"></span>
+                          <span className="skill-name">{name}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -321,7 +318,7 @@ const About = () => {
 
           {/* 興趣與好玩的事 */}
           <motion.section className="about-section-card" variants={itemVariants}>
-            <h3 className="section-title">🎨 Fun Facts / 趣味雜項</h3>
+            <h3 className="section-title"><span className="section-index">05</span>Fun Facts</h3>
             <div className="section-content">
               <ul className="about-fun-list">
                 <li>

@@ -22,3 +22,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 *:Zone.Identifier
+
+# 壓縮前備份的原圖（scripts/compress-images.js）
+/.image-originals
+
+# 由 scripts/generate-posts.js 自動產生（npm start / npm run build 時會重新產生）
+/src/data/posts-metadata.json
+/public/rss.xml

@@ -1,63 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion'; // 引入 framer-motion
-import ReactMarkdown from 'react-markdown'; // 引入 react-markdown 來解析 md 內容
-import rehypeRaw from 'rehype-raw'; // 引入 rehype-raw 解析原始 HTML 標籤
-import blogPosts from './data/posts-metadata.json'; // 引入自動生成的文章元資料
-import './App.css'; 
-
-// 解析 Markdown 中的圖片與影音媒體路徑（相容 /image/...、../image/...、./image/... 與外部 URL）
-const resolveMediaUrl = (src) => {
-  if (!src) return src;
-  if (/^(https?:|data:|blob:|\/\/)/i.test(src)) {
-    return src;
-  }
-  let cleanPath = src.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\/+/, '');
-  if (cleanPath.startsWith('public/')) {
-    cleanPath = cleanPath.slice(7);
-  }
-  const publicUrl = process.env.PUBLIC_URL || '';
-  return `${publicUrl}/${cleanPath}`;
-};
-
-// 影音播放器組件 (含檔案遺失 404 / 載入失敗之友善提示)
-const VideoPlayer = ({ src, alt, ...props }) => {
-  const [hasError, setHasError] = useState(false);
-  const finalSrc = resolveMediaUrl(src);
-
-  if (hasError) {
-    return (
-      <div className="markdown-media-error" style={{
-        padding: '14px 18px',
-        margin: '16px 0',
-        borderRadius: '12px',
-        background: 'rgba(239, 68, 68, 0.12)',
-        border: '1px solid rgba(239, 68, 68, 0.3)',
-        color: 'var(--text-primary)',
-        fontSize: '0.88rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
-        <span>⚠️ 影片檔案未找到或無法載入（檔名路徑：<code>{src}</code>）</span>
-      </div>
-    );
-  }
-
-  return (
-    <video
-      src={finalSrc}
-      controls
-      playsInline
-      preload="metadata"
-      className="markdown-video"
-      onError={() => setHasError(true)}
-      {...props}
-    >
-      {alt || "您的瀏覽器不支援播放此影片。"}
-    </video>
-  );
-}; 
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useParams, Link, Navigate } from 'react-router-dom';
+import { motion, useScroll, useSpring } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw'; // 解析原始 HTML 標籤 (如 <video>)
+import { LuArrowLeft, LuArrowRight, LuCalendar, LuClock, LuList } from 'react-icons/lu';
+import blogPosts from './data/posts-metadata.json';
+import { CATEGORY_META } from './data/profile';
+import { createMarkdownComponents, resolveMediaUrl, stripFrontmatter } from './shared/markdown';
 
 // 定義動畫效果
 const containerVariants = {
@@ -82,82 +31,47 @@ const itemVariants = {
   },
 };
 
-// 高效能 Markdown 元件渲染（自動偵測同段落多張圖片並轉為並排網格）
-const markdownComponents = {
-  h1: ({ children, ...props }) => <h1 className="markdown-h1" {...props}>{children}</h1>,
-  h2: ({ children, ...props }) => <h2 className="markdown-h2" {...props}>{children}</h2>,
-  h3: ({ children, ...props }) => <h3 className="markdown-h3" {...props}>{children}</h3>,
-  p: ({ children, ...props }) => {
-    const childrenArray = React.Children.toArray(children);
-    const imgElements = childrenArray.filter(
-      child => React.isValidElement(child) && (child.type === 'img' || child.props?.src)
-    );
-    if (imgElements.length >= 2) {
-      const gridClass = `img-grid-${Math.min(imgElements.length, 4)}`;
-      return (
-        <div className={`${gridClass} markdown-img-group`} {...props}>
-          {children}
-        </div>
-      );
-    }
-    return <p className="markdown-p" {...props}>{children}</p>;
-  },
-  ul: ({ children, ...props }) => <ul className="markdown-ul" {...props}>{children}</ul>,
-  ol: ({ children, ...props }) => <ol className="markdown-ol" {...props}>{children}</ol>,
-  li: ({ children, ...props }) => <li className="markdown-li" {...props}>{children}</li>,
-  pre: ({ children, ...props }) => <pre className="markdown-pre" {...props}>{children}</pre>,
-  code: ({ children, ...props }) => <code className="markdown-code" {...props}>{children}</code>,
-  hr: (props) => <hr className="markdown-hr" {...props} />,
-  blockquote: ({ children, ...props }) => <blockquote className="markdown-blockquote" {...props}>{children}</blockquote>,
-  img: ({ src, alt, ...props }) => {
-    const finalSrc = resolveMediaUrl(src);
-    const isVideo = src && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
+// 文章開頭若是與標題相同的 "# 標題"，避免與頁首標題重複
+const removeDuplicateTitle = (text, title) => {
+  const match = text.match(/^\s*#\s+(.+)\r?\n/);
+  if (match && match[1].trim() === title.trim()) {
+    return text.slice(match[0].length);
+  }
+  return text;
+};
 
-    if (isVideo) {
-      return <VideoPlayer src={src} alt={alt} {...props} />;
-    }
-    return <img src={finalSrc} alt={alt || "文章圖片"} className="markdown-img" loading="lazy" decoding="async" {...props} />;
-  },
-  video: ({ src, children, ...props }) => {
-    return <VideoPlayer src={src} {...props}>{children}</VideoPlayer>;
-  },
-  a: ({ href, children, ...props }) => {
-    if (href) {
-      // eslint-disable-next-line no-useless-escape
-      const ytMatch = href.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-      if (ytMatch && ytMatch[1]) {
-        return (
-          <div className="markdown-video-wrapper">
-            <iframe
-              src={`https://www.youtube.com/embed/${ytMatch[1]}`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="markdown-iframe"
-            />
-          </div>
-        );
-      }
-    }
-    return <a href={href} target="_blank" rel="noreferrer" {...props}>{children}</a>;
-  },
+// 閱讀進度條（固定於導覽列下方）
+const ReadingProgress = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
+  return <motion.div className="reading-progress" style={{ scaleX }} />;
 };
 
 const BlogPost = () => {
-  const { id } = useParams();
-  const post = blogPosts.find(p => p.id === parseInt(id));
+  const { slug } = useParams();
+  const postIndex = blogPosts.findIndex(p => p.slug === slug);
+  const post = postIndex >= 0 ? blogPosts[postIndex] : null;
+  // 舊網址 #/blog/7 → 轉到新網址 #/blog/<slug>，已經分享出去的連結才不會壞
+  const legacyPost = !post && /^\d+$/.test(slug || '') ? blogPosts.find(p => p.legacyId === Number(slug)) : null;
+  // 文章裡 ./xxx.jpg 這種相對路徑要從文章資料夾找
+  const components = useMemo(() => createMarkdownComponents(post?.baseDir), [post]);
+  // 列表依日期新到舊排序：前一篇是較新的，下一篇是較舊的
+  const newerPost = postIndex > 0 ? blogPosts[postIndex - 1] : null;
+  const olderPost = postIndex >= 0 && postIndex < blogPosts.length - 1 ? blogPosts[postIndex + 1] : null;
 
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [toc, setToc] = useState([]);
+  const [activeHeading, setActiveHeading] = useState(null);
+  const contentRef = useRef(null);
 
   useEffect(() => {
     if (!post) {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     setError(false);
 
@@ -170,9 +84,7 @@ const BlogPost = () => {
         return res.text();
       })
       .then(text => {
-        // 移除最上方的 YAML Frontmatter，避免將其顯示在文章內容中
-        const cleanContent = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
-        setContent(cleanContent);
+        setContent(removeDuplicateTitle(stripFrontmatter(text), post.title));
         setLoading(false);
       })
       .catch(err => {
@@ -181,6 +93,43 @@ const BlogPost = () => {
         setLoading(false);
       });
   }, [post]);
+
+  // 內容渲染後，從 h2/h3 產生目錄並追蹤目前閱讀到的段落
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+    const headings = Array.from(container.querySelectorAll('h2, h3'));
+    headings.forEach((h, idx) => { h.id = `section-${idx}`; });
+    setToc(headings.map(h => ({ id: h.id, text: h.textContent, level: h.tagName === 'H2' ? 2 : 3 })));
+
+    if (headings.length === 0) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        const visible = entries.filter(e => e.isIntersecting);
+        if (visible.length > 0) setActiveHeading(visible[0].target.id);
+      },
+      { rootMargin: '-80px 0px -70% 0px' }
+    );
+    headings.forEach(h => observer.observe(h));
+    return () => observer.disconnect();
+  }, [content]);
+
+  // 分頁標題顯示文章標題
+  useEffect(() => {
+    if (!post) return undefined;
+    const previous = document.title;
+    document.title = `${post.title} | Retro's Space`;
+    return () => { document.title = previous; };
+  }, [post]);
+
+  const scrollToHeading = (headingId) => {
+    document.getElementById(headingId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  if (legacyPost) {
+    return <Navigate to={`/blog/${legacyPost.slug}`} replace />;
+  }
 
   if (loading) {
     return (
@@ -214,44 +163,87 @@ const BlogPost = () => {
     );
   }
 
+  const meta = CATEGORY_META[post.category] || CATEGORY_META.tech;
+  const showToc = toc.length >= 3;
+
   return (
-    <motion.div 
-      className="blog-post-container page"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants} // 套用容器動畫
-    >
-      <motion.div 
-        variants={itemVariants} 
-        className="blog-post-hero-banner"
-        style={{ 
-          background: post.category === 'tech' 
-            ? 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3b82f6 100%)' 
-            : 'linear-gradient(135deg, #e03131 0%, #f06595 50%, #ffc9c9 100%)' 
-        }}
+    <>
+      <ReadingProgress />
+      <motion.div
+        className={`blog-post-container page ${showToc ? 'has-toc' : ''}`}
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
       >
-        <span className="modal-emoji">{post.category === 'tech' ? '💻' : '🌿'}</span>
-      </motion.div>
+        <motion.div variants={itemVariants}>
+          <Link to="/blog" className="post-back-link"><LuArrowLeft aria-hidden="true" /> 返回列表</Link>
+        </motion.div>
 
-      <motion.div variants={itemVariants} className="post-header-meta">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-          <span className={`post-category-tag ${post.category}`}>
-            {post.category === 'tech' ? '💻 技術分享' : '🌿 生活隨筆'}
-          </span>
-          <p className="post-meta" style={{ margin: 0 }}>發布於 {post.date}</p>
+        <motion.div variants={itemVariants} className="blog-post-hero-banner" style={{ background: meta.gradient }}>
+          {post.cover ? (
+            <img src={resolveMediaUrl(post.cover)} alt="" className="blog-post-hero-img" />
+          ) : (
+            <span className="code-banner code-banner-lg">{meta.fallbackCode}</span>
+          )}
+        </motion.div>
+
+        <motion.header variants={itemVariants} className="post-header-meta">
+          <span className={`post-category-tag ${post.category}`}>{meta.longLabel}</span>
+          <h1 className="post-title glitch" data-text={post.title}>{post.title}</h1>
+          <div className="post-meta-row">
+            <span><LuCalendar aria-hidden="true" /> {post.date}</span>
+            <span><LuClock aria-hidden="true" /> 約 {post.readingMinutes || 1} 分鐘</span>
+            {post.draft && <span className="post-draft-badge">草稿</span>}
+          </div>
+          {post.tags?.length > 0 && (
+            <div className="post-tags">
+              {post.tags.map(tag => (
+                <Link key={tag} to={`/blog?tag=${encodeURIComponent(tag)}`} className="project-tech-tag post-tag">{tag}</Link>
+              ))}
+            </div>
+          )}
+        </motion.header>
+
+        <div className="post-layout">
+          {showToc && (
+            <aside className="post-toc" aria-label="文章目錄">
+              <details open>
+                <summary><LuList aria-hidden="true" /> 目錄</summary>
+                <ul>
+                  {toc.map(item => (
+                    <li key={item.id} className={`toc-level-${item.level} ${activeHeading === item.id ? 'active' : ''}`}>
+                      <button type="button" onClick={() => scrollToHeading(item.id)}>{item.text}</button>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </aside>
+          )}
+
+          <article className="post-content" ref={contentRef}>
+            <ReactMarkdown rehypePlugins={[rehypeRaw]} components={components}>
+              {content}
+            </ReactMarkdown>
+          </article>
         </div>
-      </motion.div>
 
-      <div className="post-content">
-        <ReactMarkdown rehypePlugins={[rehypeRaw]} components={markdownComponents}>
-          {content}
-        </ReactMarkdown>
-      </div>
-      
-      <motion.div variants={itemVariants} style={{ marginTop: '40px' }}>
-        <Link to="/blog" className="back-to-list-btn">返回列表</Link>
+        {/* 上一篇 / 下一篇 */}
+        <nav className="post-pagination" aria-label="其他文章">
+          {olderPost ? (
+            <Link to={`/blog/${olderPost.slug}`} className="post-pagination-link prev">
+              <span className="post-pagination-label"><LuArrowLeft aria-hidden="true" /> 上一篇</span>
+              <span className="post-pagination-title">{olderPost.title}</span>
+            </Link>
+          ) : <span />}
+          {newerPost ? (
+            <Link to={`/blog/${newerPost.slug}`} className="post-pagination-link next">
+              <span className="post-pagination-label">下一篇 <LuArrowRight aria-hidden="true" /></span>
+              <span className="post-pagination-title">{newerPost.title}</span>
+            </Link>
+          ) : <span />}
+        </nav>
       </motion.div>
-    </motion.div>
+    </>
   );
 };
 
