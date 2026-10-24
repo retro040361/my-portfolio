@@ -1,9 +1,9 @@
 ---
 id: 4
-title: Daily 260711
+title: "Daily 260711"
 date: 2026-07-11
 category: life
-excerpt: 生活紀錄 vol. 260711
+excerpt: "生活紀錄 vol. 260711"
 ---
 # 生活紀錄
 在家玩switch

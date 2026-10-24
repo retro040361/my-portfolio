@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Retro's Space</title>
+    <link>https://retro040361.github.io/my-portfolio/#/blog</link>
+    <description>Retro 的部落格：技術分享與生活隨筆</description>
+    <language>zh-TW</language>
+    <item>
+      <title>[雜談] 關於AI開發的一些小想法 vol. 1</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/ai-dev-thoughts-vol-1</link>
+      <guid isPermaLink="false">ai-dev-thoughts-vol-1</guid>
+      <pubDate>Sat, 29 Aug 2026 16:00:00 GMT</pubDate>
+      <category>tech</category>
+      <description>最近用AI開發的一些小想法，紀錄一下，寫vol.1是我猜之後應該還會有更多想法ㄅ，除非我放棄用AIㄌ</description>
+    </item>
+    <item>
+      <title>[食記] 第一次自己煮的減脂餐</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/first-meal-prep</link>
+      <guid isPermaLink="false">first-meal-prep</guid>
+      <pubDate>Mon, 03 Aug 2026 16:00:00 GMT</pubDate>
+      <category>life</category>
+      <description>搬到新家之後一直想要煮點東西，突然想到好像可以自己準備健康餐就來試試看ㄌ</description>
+    </item>
+    <item>
+      <title>2025 回顧</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/2025-recap</link>
+      <guid isPermaLink="false">2025-recap</guid>
+      <pubDate>Sun, 12 Jul 2026 16:00:00 GMT</pubDate>
+      <category>life</category>
+      <description>其實也是拖了好久 趁這個機會來回顧一下2025</description>
+    </item>
+    <item>
+      <title>Daily 260711</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/daily-260711</link>
+      <guid isPermaLink="false">daily-260711</guid>
+      <pubDate>Fri, 10 Jul 2026 16:00:00 GMT</pubDate>
+      <category>life</category>
+      <description>生活紀錄 vol. 260711</description>
+    </item>
+    <item>
+      <title>我的第一篇 React 心得</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/react-first-notes</link>
+      <guid isPermaLink="false">react-first-notes</guid>
+      <pubDate>Sun, 19 May 2024 16:00:00 GMT</pubDate>
+      <category>tech</category>
+      <description>今天終於學會了 React Router 的基本用法，感覺 SPA 的體驗真的很棒...</description>
+    </item>
+    <item>
+      <title>CSS Flexbox 懶人包</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/css-flexbox-cheatsheet</link>
+      <guid isPermaLink="false">css-flexbox-cheatsheet</guid>
+      <pubDate>Fri, 17 May 2024 16:00:00 GMT</pubDate>
+      <category>tech</category>
+      <description>靠右、靠左、垂直置中？這篇讓你一次搞懂 Flexbox 的核心邏輯...</description>
+    </item>
+    <item>
+      <title>為什麼我開始學習前端開發</title>
+      <link>https://retro040361.github.io/my-portfolio/#/blog/why-i-started-frontend</link>
+      <guid isPermaLink="false">why-i-started-frontend</guid>
+      <pubDate>Tue, 14 May 2024 16:00:00 GMT</pubDate>
+      <category>tech</category>
+      <description>從零到一的過程很痛苦，但看到畫面動起來的那一刻，一切都值得了。</description>
+    </item>
+  </channel>
+</rss>

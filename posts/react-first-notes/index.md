@@ -1,9 +1,9 @@
 ---
 id: 1
-title: 我的第一篇 React 心得
+title: "我的第一篇 React 心得"
 date: 2024-05-20
 category: tech
-excerpt: 今天終於學會了 React Router 的基本用法，感覺 SPA 的體驗真的很棒...
+excerpt: "今天終於學會了 React Router 的基本用法，感覺 SPA 的體驗真的很棒..."
 ---
 # 我的第一篇 React 心得
 

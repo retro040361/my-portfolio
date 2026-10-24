@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- RETRO_OS 的噴漆 R（同首頁開場動畫），青 / 洋紅錯位的故障效果 -->
+  <rect width="64" height="64" rx="14" fill="#07070a" />
+  <g transform="translate(11 6) scale(0.215)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#00e5ff" stroke-width="26" transform="translate(-7 0)" opacity="0.85">
+      <path d="M72 26 L58 238" />
+      <path d="M64 34 L170 46 L140 124 L66 132" />
+      <path d="M98 130 L186 240" />
+    </g>
+    <g stroke="#ff1f8f" stroke-width="26" transform="translate(7 0)" opacity="0.85">
+      <path d="M72 26 L58 238" />
+      <path d="M64 34 L170 46 L140 124 L66 132" />
+      <path d="M98 130 L186 240" />
+    </g>
+    <g stroke="#f4f4f6" stroke-width="26">
+      <path d="M72 26 L58 238" />
+      <path d="M64 34 L170 46 L140 124 L66 132" />
+      <path d="M98 130 L186 240" />
+    </g>
+    <path d="M24 168 L214 96" stroke="#ff1f8f" stroke-width="16" />
+  </g>
+</svg>
