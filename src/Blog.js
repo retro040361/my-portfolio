@@ -41,14 +41,20 @@ const Blog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeKey = searchParams.get('category') || 'all';
   const active = CATEGORIES.find(c => c.key === activeKey) || CATEGORIES[0];
+  const activeTag = searchParams.get('tag');
 
-  const filteredPosts = active.key === 'all'
-    ? blogPosts
-    : blogPosts.filter(post => post.category === active.key);
+  const filteredPosts = blogPosts
+    .filter(post => active.key === 'all' || post.category === active.key)
+    .filter(post => !activeTag || post.tags?.includes(activeTag));
 
-  const selectCategory = (key) => {
-    setSearchParams(key === 'all' ? {} : { category: key }, { replace: true });
+  // 分類和標籤都存在網址上，從文章返回時會保留篩選
+  const updateFilters = ({ category = active.key, tag = activeTag }) => {
+    const next = {};
+    if (category !== 'all') next.category = category;
+    if (tag) next.tag = tag;
+    setSearchParams(next, { replace: true });
   };
+  const selectCategory = (key) => updateFilters({ category: key });
 
   return (
     <motion.div
@@ -82,8 +88,15 @@ const Blog = () => {
         </motion.div>
       </div>
 
+      {activeTag && (
+        <div className="blog-active-tag">
+          <span>標籤：<strong>{activeTag}</strong>（{filteredPosts.length} 篇）</span>
+          <button type="button" className="filter-btn" onClick={() => updateFilters({ tag: null })}>清除標籤 ✕</button>
+        </div>
+      )}
+
       <motion.div
-        key={active.key}
+        key={`${active.key}-${activeTag || ''}`}
         className="projects-grid blog-grid"
         variants={containerVariants}
         initial="hidden"
@@ -93,11 +106,11 @@ const Blog = () => {
           const meta = CATEGORY_META[post.category] || CATEGORY_META.tech;
           return (
             <motion.div
-              key={post.id}
+              key={post.slug}
               variants={itemVariants}
               whileHover={{ y: -6, transition: { duration: 0.15, ease: 'easeOut' } }}
             >
-              <Link to={`/blog/${post.id}`} className="project-card-glass post-card-link">
+              <Link to={`/blog/${post.slug}`} className="project-card-glass post-card-link">
                 {/* 封面：有圖片用圖片，沒有則用分類漸層 */}
                 <div className="post-cover" style={{ background: meta.gradient }}>
                   {post.cover ? (
@@ -113,9 +126,15 @@ const Blog = () => {
                     <span className={`post-category-tag ${post.category}`}>
                       {meta.label}
                     </span>
+                    {post.draft && <span className="post-draft-badge">草稿</span>}
                   </div>
                   <h2 className="project-title post-card-title">{post.title}</h2>
                   <p className="project-desc post-card-excerpt">{post.excerpt}</p>
+                  {post.tags?.length > 0 && (
+                    <div className="post-tags">
+                      {post.tags.slice(0, 3).map(tag => <span key={tag} className="project-tech-tag post-tag">{tag}</span>)}
+                    </div>
+                  )}
                   <span className="post-reading-time">
                     <LuClock aria-hidden="true" /> 約 {post.readingMinutes || 1} 分鐘
                   </span>

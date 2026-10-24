@@ -1,9 +1,9 @@
 ---
 id: 2
-title: CSS Flexbox 懶人包
+title: "CSS Flexbox 懶人包"
 date: 2024-05-18
 category: tech
-excerpt: 靠右、靠左、垂直置中？這篇讓你一次搞懂 Flexbox 的核心邏輯...
+excerpt: "靠右、靠左、垂直置中？這篇讓你一次搞懂 Flexbox 的核心邏輯..."
 ---
 # CSS Flexbox 懶人包
 

@@ -377,6 +377,61 @@ h1, h2, h3, h4,
   opacity: 0.6;
 }
 
+/* 文章標籤、草稿標記、標籤篩選列 */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.post-header-meta .post-tags {
+  justify-content: inherit;
+}
+
+.post-tag {
+  padding: 2px 8px;
+  text-decoration: none;
+}
+
+.post-tag::before {
+  content: '//';
+  margin-right: 4px;
+  opacity: 0.6;
+}
+
+a.post-tag:hover {
+  background: currentColor;
+  color: var(--bg-global);
+}
+
+a.post-tag:hover::before {
+  color: var(--bg-global);
+}
+
+.post-draft-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  color: #f5b301;
+  border: 1px dashed currentColor;
+}
+
+.blog-active-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.blog-active-tag strong {
+  color: var(--accent);
+}
+
 .game-status-badge.is-playing {
   color: var(--accent-3);
   background: transparent;

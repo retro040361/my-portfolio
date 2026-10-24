@@ -2,7 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const IMAGE_DIR = path.join(__dirname, '../public/image');
+const PUBLIC_DIR = path.join(__dirname, '../public');
+// 共用圖庫和每篇文章資料夾裡的圖片都會壓縮
+const IMAGE_DIRS = [path.join(PUBLIC_DIR, 'image'), path.join(PUBLIC_DIR, 'posts')];
+// 壓縮前先把原圖備份到這裡（不會被部署、也不進 git），想要原圖時從這裡拿
+const ORIGINALS_DIR = path.join(__dirname, '../.image-originals');
 const MAX_DIMENSION = 1600; // 網頁圖片最大長邊長度 1600px
 const QUALITY = 82;         // 高畫質 82% 壓縮比
 
@@ -61,13 +65,18 @@ async function compressImage(filePath) {
       buffer = await transform.jpeg({ quality: QUALITY, mozjpeg: true }).toBuffer();
     }
 
-    // 只有當壓縮後檔案確實變小時才覆寫
+    // 只有當壓縮後檔案確實變小時才覆寫，覆寫前先備份原圖
     if (buffer.length < stats.size) {
+      const backup = path.join(ORIGINALS_DIR, path.relative(PUBLIC_DIR, filePath));
+      if (!fs.existsSync(backup)) {
+        fs.mkdirSync(path.dirname(backup), { recursive: true });
+        fs.copyFileSync(filePath, backup);
+      }
       fs.writeFileSync(filePath, buffer);
       const newSizeMB = (buffer.length / (1024 * 1024)).toFixed(2);
       const savedMB = (originalSizeMB - newSizeMB).toFixed(2);
       return {
-        file: path.relative(path.join(__dirname, '../public'), filePath),
+        file: path.relative(PUBLIC_DIR, filePath),
         originalSizeMB,
         newSizeMB,
         savedMB
@@ -81,7 +90,7 @@ async function compressImage(filePath) {
 
 async function run() {
   console.log('⚡ 正在檢查並自動優化專案圖片庫...');
-  const images = getAllImageFiles(IMAGE_DIR);
+  const images = IMAGE_DIRS.flatMap(dir => getAllImageFiles(dir));
   let totalSavedBytes = 0;
   let compressedCount = 0;
 
@@ -107,12 +116,12 @@ async function startWatchMode() {
 
   const processingFiles = new Set();
 
-  fs.watch(IMAGE_DIR, { recursive: true }, (eventType, filename) => {
+  IMAGE_DIRS.filter(dir => fs.existsSync(dir)).forEach(dir => fs.watch(dir, { recursive: true }, (eventType, filename) => {
     if (!filename) return;
     const ext = path.extname(filename).toLowerCase();
     if (!['.jpg', '.jpeg', '.png'].includes(ext)) return;
 
-    const fullPath = path.join(IMAGE_DIR, filename);
+    const fullPath = path.join(dir, filename);
     if (processingFiles.has(fullPath)) return;
 
     processingFiles.add(fullPath);
@@ -127,7 +136,7 @@ async function startWatchMode() {
       }
       processingFiles.delete(fullPath);
     }, 600);
-  });
+  }));
 }
 
 const isWatch = process.argv.includes('--watch');

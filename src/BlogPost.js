@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { motion, useScroll, useSpring } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw'; // 解析原始 HTML 標籤 (如 <video>)
 import { LuArrowLeft, LuArrowRight, LuCalendar, LuClock, LuList } from 'react-icons/lu';
 import blogPosts from './data/posts-metadata.json';
 import { CATEGORY_META } from './data/profile';
-import { markdownComponents, resolveMediaUrl, stripFrontmatter } from './shared/markdown';
+import { createMarkdownComponents, resolveMediaUrl, stripFrontmatter } from './shared/markdown';
 
 // 定義動畫效果
 const containerVariants = {
@@ -48,9 +48,13 @@ const ReadingProgress = () => {
 };
 
 const BlogPost = () => {
-  const { id } = useParams();
-  const postIndex = blogPosts.findIndex(p => p.id === parseInt(id, 10));
+  const { slug } = useParams();
+  const postIndex = blogPosts.findIndex(p => p.slug === slug);
   const post = postIndex >= 0 ? blogPosts[postIndex] : null;
+  // 舊網址 #/blog/7 → 轉到新網址 #/blog/<slug>，已經分享出去的連結才不會壞
+  const legacyPost = !post && /^\d+$/.test(slug || '') ? blogPosts.find(p => p.legacyId === Number(slug)) : null;
+  // 文章裡 ./xxx.jpg 這種相對路徑要從文章資料夾找
+  const components = useMemo(() => createMarkdownComponents(post?.baseDir), [post]);
   // 列表依日期新到舊排序：前一篇是較新的，下一篇是較舊的
   const newerPost = postIndex > 0 ? blogPosts[postIndex - 1] : null;
   const olderPost = postIndex >= 0 && postIndex < blogPosts.length - 1 ? blogPosts[postIndex + 1] : null;
@@ -111,9 +115,21 @@ const BlogPost = () => {
     return () => observer.disconnect();
   }, [content]);
 
+  // 分頁標題顯示文章標題
+  useEffect(() => {
+    if (!post) return undefined;
+    const previous = document.title;
+    document.title = `${post.title} | Retro's Space`;
+    return () => { document.title = previous; };
+  }, [post]);
+
   const scrollToHeading = (headingId) => {
     document.getElementById(headingId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  if (legacyPost) {
+    return <Navigate to={`/blog/${legacyPost.slug}`} replace />;
+  }
 
   if (loading) {
     return (
@@ -177,7 +193,15 @@ const BlogPost = () => {
           <div className="post-meta-row">
             <span><LuCalendar aria-hidden="true" /> {post.date}</span>
             <span><LuClock aria-hidden="true" /> 約 {post.readingMinutes || 1} 分鐘</span>
+            {post.draft && <span className="post-draft-badge">草稿</span>}
           </div>
+          {post.tags?.length > 0 && (
+            <div className="post-tags">
+              {post.tags.map(tag => (
+                <Link key={tag} to={`/blog?tag=${encodeURIComponent(tag)}`} className="project-tech-tag post-tag">{tag}</Link>
+              ))}
+            </div>
+          )}
         </motion.header>
 
         <div className="post-layout">
@@ -197,7 +221,7 @@ const BlogPost = () => {
           )}
 
           <article className="post-content" ref={contentRef}>
-            <ReactMarkdown rehypePlugins={[rehypeRaw]} components={markdownComponents}>
+            <ReactMarkdown rehypePlugins={[rehypeRaw]} components={components}>
               {content}
             </ReactMarkdown>
           </article>
@@ -206,13 +230,13 @@ const BlogPost = () => {
         {/* 上一篇 / 下一篇 */}
         <nav className="post-pagination" aria-label="其他文章">
           {olderPost ? (
-            <Link to={`/blog/${olderPost.id}`} className="post-pagination-link prev">
+            <Link to={`/blog/${olderPost.slug}`} className="post-pagination-link prev">
               <span className="post-pagination-label"><LuArrowLeft aria-hidden="true" /> 上一篇</span>
               <span className="post-pagination-title">{olderPost.title}</span>
             </Link>
           ) : <span />}
           {newerPost ? (
-            <Link to={`/blog/${newerPost.id}`} className="post-pagination-link next">
+            <Link to={`/blog/${newerPost.slug}`} className="post-pagination-link next">
               <span className="post-pagination-label">下一篇 <LuArrowRight aria-hidden="true" /></span>
               <span className="post-pagination-title">{newerPost.title}</span>
             </Link>

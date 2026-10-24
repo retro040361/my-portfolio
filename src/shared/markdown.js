@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 
 // 解析 Markdown 中的圖片與影音媒體路徑（相容 /image/...、../image/...、./image/... 與外部 URL）
-export const resolveMediaUrl = (src) => {
+// 有給 baseDir（文章資料夾，例如 posts/my-post）時，./dog.jpg 這種相對路徑會指向文章自己的資料夾；
+// image/ 開頭（或 / 、../ 開頭）的還是指向共用圖庫 public/image
+export const resolveMediaUrl = (src, baseDir) => {
   if (!src) return src;
   if (/^(https?:|data:|blob:|\/\/)/i.test(src)) {
     return src;
+  }
+  if (baseDir && !/^(\/|\.\.\/|(\.\/)?(public\/)?image\/)/.test(src)) {
+    return `${process.env.PUBLIC_URL || ''}/${baseDir}/${src.replace(/^\.\//, '')}`;
   }
   let cleanPath = src.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\/+/, '');
   if (cleanPath.startsWith('public/')) {
@@ -18,9 +23,9 @@ export const resolveMediaUrl = (src) => {
 export const stripFrontmatter = (text) => text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 
 // 影音播放器組件 (含檔案遺失 404 / 載入失敗之友善提示)
-export const VideoPlayer = ({ src, alt, ...props }) => {
+export const VideoPlayer = ({ src, alt, baseDir, ...props }) => {
   const [hasError, setHasError] = useState(false);
-  const finalSrc = resolveMediaUrl(src);
+  const finalSrc = resolveMediaUrl(src, baseDir);
 
   if (hasError) {
     return (
@@ -46,7 +51,8 @@ export const VideoPlayer = ({ src, alt, ...props }) => {
 };
 
 // 讓 react-markdown 渲染的 HTML 元素能套用樣式（自動偵測同段落多張圖片並轉為並排網格）
-export const markdownComponents = {
+// baseDir 是文章資料夾，文章裡的相對路徑圖片會從那裡找
+export const createMarkdownComponents = (baseDir) => ({
   h1: ({ children, ...props }) => <h1 className="markdown-h1" {...props}>{children}</h1>,
   h2: ({ children, ...props }) => <h2 className="markdown-h2" {...props}>{children}</h2>,
   h3: ({ children, ...props }) => <h3 className="markdown-h3" {...props}>{children}</h3>,
@@ -73,16 +79,16 @@ export const markdownComponents = {
   hr: (props) => <hr className="markdown-hr" {...props} />,
   blockquote: ({ children, ...props }) => <blockquote className="markdown-blockquote" {...props}>{children}</blockquote>,
   img: ({ src, alt, ...props }) => {
-    const finalSrc = resolveMediaUrl(src);
+    const finalSrc = resolveMediaUrl(src, baseDir);
     const isVideo = src && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(src);
 
     if (isVideo) {
-      return <VideoPlayer src={src} alt={alt} {...props} />;
+      return <VideoPlayer src={src} alt={alt} baseDir={baseDir} {...props} />;
     }
     return <img src={finalSrc} alt={alt || "文章圖片"} className="markdown-img" loading="lazy" decoding="async" {...props} />;
   },
   video: ({ src, children, ...props }) => {
-    return <VideoPlayer src={src} {...props}>{children}</VideoPlayer>;
+    return <VideoPlayer src={src} baseDir={baseDir} {...props}>{children}</VideoPlayer>;
   },
   a: ({ href, children, ...props }) => {
     if (href) {
@@ -105,4 +111,6 @@ export const markdownComponents = {
     }
     return <a href={href} target="_blank" rel="noreferrer" {...props}>{children}</a>;
   },
-};
+});
+
+export const markdownComponents = createMarkdownComponents();
