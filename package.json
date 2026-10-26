@@ -31,7 +31,7 @@
     "new-post": "node scripts/new-post.js",
     "posts": "node scripts/generate-posts.js",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d build -t",
     "compress": "node scripts/compress-images.js",
     "compress:watch": "node scripts/compress-images.js --watch",
     "pretest": "node scripts/generate-posts.js",
