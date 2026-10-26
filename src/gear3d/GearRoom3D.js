@@ -49,14 +49,17 @@ const FrameDriver = ({ fps, running }) => {
   return null;
 };
 
-const GearRoom3D = () => {
+// reducedMotion：系統開了「減少動態效果」（Windows 關掉動畫效果、遠端桌面等常見）
+// 這時還是顯示 3D，但不自動播動畫，只在滑鼠互動或切換主題時才繪製
+// forceLowPower：只能用 CPU 繪製時，強制用最低畫質
+const GearRoom3D = ({ reducedMotion = false, forceLowPower = false, motionNote = '系統開啟了減少動態效果，動畫已暫停；滑鼠移上去可以互動' }) => {
   const [active, setActive] = useState(null);
   const theme = useTheme();
-  const [lowPower] = useState(isLowPower);
+  const [lowPower] = useState(() => forceLowPower || isLowPower());
   const info = active ? gearByKey[active] : null;
 
   // 解析度：最高 1.5 倍；掉幀時自動往下調，順了再調回來
-  const maxDpr = lowPower ? 1.25 : 1.5;
+  const maxDpr = forceLowPower ? 1 : lowPower ? 1.25 : 1.5;
   const [dpr, setDpr] = useState(maxDpr);
   const onPerformance = useCallback((dir) => {
     setDpr(d => Math.min(maxDpr, Math.max(1, d + dir * 0.25)));
@@ -87,6 +90,16 @@ const GearRoom3D = () => {
   };
   useEffect(() => () => clearTimeout(idleTimer.current), []);
 
+  // 減少動態效果時：剛顯示、切換主題後各畫 2.5 秒（讓第一幀和窗外天色轉換完成），之後停在當下畫面
+  const [burst, setBurst] = useState(false);
+  useEffect(() => {
+    if (!reducedMotion || !ready) return undefined;
+    setBurst(true);
+    const timer = setTimeout(() => setBurst(false), 2500);
+    return () => clearTimeout(timer);
+  }, [reducedMotion, ready, theme.changedAt]);
+  const animating = !reducedMotion || interactive || burst;
+
   const tooltip = info && (
     <div className="gear-tooltip gear-tooltip-3d" role="status">
       <span className="gear-tooltip-category">{`// ${info.category}`}</span>
@@ -116,7 +129,7 @@ const GearRoom3D = () => {
           onPointerMissed={() => setActive(null)}
           aria-label="Retro 的電競房間與設備（3D）"
         >
-          <FrameDriver fps={interactive ? 60 : 30} running={ready && inView} />
+          <FrameDriver fps={interactive ? 60 : 30} running={ready && inView && animating} />
           <Selection>
             <Scene
               active={active}
@@ -130,6 +143,7 @@ const GearRoom3D = () => {
           </Selection>
         </Canvas>
         {!lowPower && <span className="gear-hint">drag to rotate · hover to inspect</span>}
+        {reducedMotion && <span className="gear-motion-note">{`// ${motionNote}`}</span>}
       </div>
 
       {/* 設備清單：手機或鍵盤使用者也能看到全部；滑過清單會標示畫面中的物品 */}

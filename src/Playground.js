@@ -11,30 +11,53 @@ import { resolveMediaUrl } from './shared/markdown';
 // 3D 電競房間：只有打開 Setup 分頁才下載 three.js
 const GearRoom3D = lazy(() => import('./gear3d/GearRoom3D'));
 
-const supportsWebGL = () => {
+// 檢查 WebGL：supported 是否能用，software 是否只能用 CPU 算（瀏覽器關了硬體加速、
+// 顯示卡驅動有問題時，Chrome / Edge 會改用 SwiftShader 之類的軟體繪製，3D 會非常卡）
+const detectWebGL = () => {
   try {
     const canvas = document.createElement('canvas');
-    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    if (!gl) return { supported: false, software: false };
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return { supported: true, software: /swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer) };
   } catch {
-    return false;
+    return { supported: false, software: false };
   }
 };
 
-// 3D 版出錯時（例如 WebGL 建立失敗）退回 SVG 版
+// 3D 版出錯時（例如 WebGL 建立失敗）退回 SVG 版，並寫出原因方便排查
 class FallbackBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { failed: false };
+    this.state = { error: null };
   }
 
-  static getDerivedStateFromError() {
-    return { failed: true };
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error) {
+    console.error('3D 房間載入失敗，改用 2D 版：', error);
   }
 
   render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
+    const { error } = this.state;
+    return error ? <FlatRoom reason={`3D 場景載入失敗（${error.message || error}）`} /> : this.props.children;
   }
 }
+
+// 2D（SVG）版，下面寫出為什麼沒有顯示 3D（action 是額外的按鈕，例如「還是要載入 3D」）
+const FlatRoom = ({ reason, action }) => (
+  <>
+    <p className="gear-fallback-note">
+      {`// 目前顯示 2D 版：${reason}`}
+      {action}
+    </p>
+    <GearRoom />
+  </>
+);
 
 // 進到 Playground 後趁瀏覽器閒置時先下載 3D 程式，切到 Setup 分頁時就不用等
 const prefetchGearRoom = () => {
@@ -43,14 +66,29 @@ const prefetchGearRoom = () => {
   else setTimeout(run, 2000);
 };
 
-// 不支援 WebGL 或開啟「減少動態效果」時用 SVG 版
+// 不支援 WebGL 時用 SVG 版；開啟「減少動態效果」時還是 3D，只是不自動播動畫
+// 只能用 CPU 繪製時先顯示 2D 版，使用者可以自己選擇載入 3D（會用最低畫質、不自動播動畫）
 const SetupRoom = () => {
-  const [use3D] = useState(() => supportsWebGL() && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-  if (!use3D) return <GearRoom />;
+  const [webgl] = useState(detectWebGL);
+  const [reducedMotion] = useState(() => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const [forced3D, setForced3D] = useState(false);
+  if (!webgl.supported) return <FlatRoom reason="這個瀏覽器不支援 WebGL（或關閉了硬體加速）" />;
+  if (webgl.software && !forced3D) {
+    return (
+      <FlatRoom
+        reason="瀏覽器沒有開啟硬體加速，3D 只能用 CPU 算會很卡（Chrome / Edge：設定 → 系統 → 開啟「使用圖形加速功能」後重新啟動）"
+        action={<button type="button" className="filter-btn gear-force-3d" onClick={() => setForced3D(true)}>還是要載入 3D</button>}
+      />
+    );
+  }
   return (
-    <FallbackBoundary fallback={<GearRoom />}>
+    <FallbackBoundary>
       <Suspense fallback={<div className="gear-loading">$ loading 3D scene…</div>}>
-        <GearRoom3D />
+        <GearRoom3D
+          reducedMotion={reducedMotion || webgl.software}
+          forceLowPower={webgl.software}
+          motionNote={webgl.software ? '沒有硬體加速，已用最低畫質並暫停動畫；滑鼠移上去可以互動' : undefined}
+        />
       </Suspense>
     </FallbackBoundary>
   );
@@ -183,7 +221,8 @@ const Playground = () => {
   const closeModal = useCallback(() => setSelectedItem(null), []);
 
   useEffect(() => {
-    if (supportsWebGL()) prefetchGearRoom();
+    const webgl = detectWebGL();
+    if (webgl.supported && !webgl.software) prefetchGearRoom();
   }, []);
 
   const selectTab = (key) => {
