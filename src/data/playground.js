@@ -120,6 +120,7 @@ export const travels = [
     image: '/image/snow_2026.jpg',
     gradient: 'linear-gradient(135deg, #ffc9c9 0%, #e03131 100%)',
     memory: '跟龍蝦實驗室同學出國滑雪！也是偶第一次滑雪。',
+    post: '2026-hakubi-ski', // 對應的遊記（public/posts/<網址>），文章發佈後卡片會出現「讀遊記 →」
     detailedThoughts: '這是我人生中第一次滑雪，在白馬翠綠與銀白交織的山谷間，體驗從雪道滑下的速度與激情。雖然摔倒了無數次，但當學會控板的那一刻，滿足感無可替代！晚上回到東京，和同學在居酒屋乾杯、探索秋葉原的二次元文化，充滿了溫馨與歡笑。'
   },
   {

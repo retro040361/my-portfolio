@@ -10,7 +10,7 @@ Retro 的個人網站：自我介紹、專案、部落格，以及遊戲／旅�
 - Motion（Framer Motion）做頁面與元件動畫
 - react-markdown + rehype-raw 渲染部落格文章
 - react-icons 提供 SVG 圖示
-- three.js + React Three Fiber 做 Playground 的 3D 電競房間
+- three.js + React Three Fiber 做 Archive（`#/archive`，原 Playground）的 3D 電競房間
 - Create React App 建置
 
 ## 專案結構
@@ -18,20 +18,20 @@ Retro 的個人網站：自我介紹、專案、部落格，以及遊戲／旅�
 ```
 public/
   posts/<網址>/      每篇文章一個資料夾：index.md + 這篇用到的圖片
-  image/            Playground 等共用的圖片
+  image/            Archive 等共用的圖片
 scripts/
   generate-posts.js 檢查文章並產生 src/data/posts-metadata.json 與 public/rss.xml
   new-post.js       建立新文章（npm run new-post）
   compress-images.js 壓縮 public/image 與 public/posts 下超過 300KB 的圖片（原圖備份在 .image-originals/）
 src/
   App.js            導覽列、Footer、路由
-  Home.js / About.js / Projects.js / Blog.js / BlogPost.js / Playground.js
+  Home.js / About.js / Projects.js / Blog.js / BlogPost.js / Playground.js（Archive 頁）
   HomeIntro.js      首頁開場動畫：開機文字 → RETRO_OS 噴漆標誌（可按任意鍵跳過）
   data/             網站內容：profile、projects、playground、文章索引
   shared/           共用元件：Markdown 渲染、RetroModal
   styles/ui.css     導覽列、首頁開場動畫、部落格與時間軸等樣式
   styles/dedsec.css Watch Dogs 主題（深色 DedSec / 淺色 ctOS）
-  gear3d/           Playground 的 3D 電競房間（three.js / React Three Fiber）
+  gear3d/           Archive 的 3D 電競房間（three.js / React Three Fiber）
   gear/             電競房間的 SVG 備用版（不支援 WebGL 時使用）
 ```
 

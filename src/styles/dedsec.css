@@ -709,3 +709,162 @@ a.post-tag:hover::before {
   border-color: var(--accent);
   transform: translateX(4px);
 }
+
+/* ---------- Archive：遊戲庫（直式封面） ---------- */
+.game-library-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+
+@media (max-width: 1024px) {
+  .game-library-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .game-library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+}
+
+.game-card-wrapper.is-static,
+.concert-item.is-static,
+.project-card-wrapper.is-static {
+  cursor: default;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-align: left;
+}
+
+.game-cover {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 封面的掃描線：滑過卡片時淡掉，讓圖完整露出 */
+.game-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+  transition: opacity 0.25s ease;
+}
+
+.game-card-wrapper:hover .game-cover::after {
+  opacity: 0;
+}
+
+.game-cover-img {
+  position: absolute;
+  inset: 0;
+}
+
+.game-cover .card-platform-tag {
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+.game-status-badge.game-cover-status,
+[data-theme='light'] .game-status-badge.game-cover-status {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 1;
+  background: rgba(7, 7, 10, 0.8);
+  border-color: currentColor;
+}
+
+/* 封面上的狀態標籤一律深底亮字，亮色主題下也看得清楚 */
+.game-status-badge.game-cover-status.is-playing,
+[data-theme='light'] .game-status-badge.game-cover-status.is-playing { color: #ffe066; }
+.game-status-badge.game-cover-status.is-cleared,
+[data-theme='light'] .game-status-badge.game-cover-status.is-cleared { color: #69db7c; }
+
+.game-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 16px;
+}
+
+.game-card-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+.game-card-comment {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.game-card .game-progress {
+  margin: 0;
+}
+
+/* 等寬方塊星等 ■■■■□ 4/5 */
+.game-rating {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.game-rating .is-on { color: var(--accent); }
+.game-rating .is-off { color: var(--text-muted); }
+
+.game-rating-num {
+  margin-left: 8px;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+/* ---------- Archive：旅行卡片 ---------- */
+.country-code {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  vertical-align: 0.15em;
+  color: var(--accent-2);
+  border: 1px solid currentColor;
+}
+
+.travel-card-wrapper {
+  position: relative;
+}
+
+.playground-card-content.has-post-link {
+  padding-bottom: 46px;
+}
+
+.travel-post-link {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+}
+
+.travel-post-link:hover {
+  color: var(--accent-2);
+}
+
+.travel-post-link.in-modal {
+  position: static;
+  display: inline-block;
+  margin-top: 14px;
+}

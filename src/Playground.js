@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, Suspense, lazy } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { LuGamepad2, LuPlane, LuMusic, LuMapPin, LuMonitor } from 'react-icons/lu';
 import { games, travels, concerts } from './data/playground';
@@ -7,6 +7,7 @@ import RetroModal from './shared/RetroModal';
 import GearRoom from './GearRoom';
 import './styles/gear.css';
 import { resolveMediaUrl } from './shared/markdown';
+import blogPosts from './data/posts-metadata.json';
 
 // 3D 電競房間：只有打開 Setup 分頁才下載 three.js
 const GearRoom3D = lazy(() => import('./gear3d/GearRoom3D'));
@@ -143,6 +144,46 @@ const TABS = [
 const getItemTitle = (item) => item.title || item.country || item.artist;
 const getItemKey = (item) => `${getItemTitle(item)}-${item.period || ''}`;
 
+// 國旗 emoji 在 Windows 上會變成「JP」兩個字母，改成拆出國家代碼、用文字標籤顯示
+const splitFlag = (text = '') => {
+  const match = text.match(/^([\u{1F1E6}-\u{1F1FF}]{2})\s*/u);
+  if (!match) return { code: null, text };
+  const code = [...match[1]].map(ch => String.fromCharCode(ch.codePointAt(0) - 0x1F1E6 + 65)).join('');
+  return { code, text: text.slice(match[0].length) };
+};
+const ItemTitle = ({ item }) => {
+  const { code, text } = splitFlag(getItemTitle(item));
+  return (
+    <>
+      {code && <span className="country-code">{code}</span>}
+      {text}
+    </>
+  );
+};
+
+// 星等：資料裡的 ⭐ 數量 → 等寬方塊 ■■■■□
+const RATING_MAX = 5;
+const Rating = ({ rating }) => {
+  const count = rating ? [...rating].filter(ch => ch === '⭐').length : 0;
+  if (!count) return null;
+  return (
+    <span className="game-rating" aria-label={`評分 ${count} / ${RATING_MAX}`}>
+      <span className="is-on">{'■'.repeat(count)}</span>
+      <span className="is-off">{'□'.repeat(Math.max(0, RATING_MAX - count))}</span>
+      <span className="game-rating-num">{count}/{RATING_MAX}</span>
+    </span>
+  );
+};
+
+// 進度說明：資料可以寫 progressLabel（例如「主線」「全成就」），沒寫就顯示「進度」
+const progressText = (item) => `${item.progressLabel || '進度'} ${item.percent}%`;
+
+// 已發佈的文章（旅行卡片可以用 post: '<slug>' 連到遊記；草稿在正式網站不會出現）
+const postBySlug = Object.fromEntries(blogPosts.map(p => [p.slug, p]));
+
+// 有寫詳細心得才能點開；沒寫的卡片只顯示、不能點
+const hasDetail = (item) => !!item.detailedThoughts;
+
 // 演唱會依年份分組，呈現時間軸
 const concertsByYear = concerts.reduce((groups, concert) => {
   const year = concert.period.slice(0, 4);
@@ -152,65 +193,97 @@ const concertsByYear = concerts.reduce((groups, concert) => {
   return groups;
 }, []);
 
-// 遊戲 / 旅行卡片
-const PlaygroundCard = ({ item, onSelect }) => {
-  const status = item.type === 'game' ? GAME_STATUS[item.status] : null;
-
+// 遊戲卡片：像遊戲庫一樣的直式封面，平台與狀態標在封面上
+const GameCard = ({ item, onSelect }) => {
+  const status = GAME_STATUS[item.status];
+  const clickable = hasDetail(item);
+  const Tag = clickable ? motion.button : motion.div;
   return (
-    <motion.button
-      type="button"
-      className="project-card-wrapper card-button"
+    <Tag
+      type={clickable ? 'button' : undefined}
+      className={`project-card-wrapper game-card-wrapper ${clickable ? 'card-button' : 'is-static'}`}
       variants={itemVariants}
-      whileHover={{ y: -6, transition: { duration: 0.15, ease: 'easeOut' } }}
-      onClick={() => onSelect(item)}
+      whileHover={clickable ? { y: -6, transition: { duration: 0.15, ease: 'easeOut' } } : undefined}
+      onClick={clickable ? () => onSelect(item) : undefined}
     >
-      <div className="project-card-glass playground-interactive-card">
-        {/* 卡片頂部封面 */}
-        <div className="project-banner" style={{ background: item.gradient }}>
+      <div className="project-card-glass game-card">
+        <div className="game-cover" style={{ background: item.gradient }}>
           {item.image ? (
-            <img src={resolveMediaUrl(item.image)} alt="" className="card-banner-img" loading="lazy" />
+            <img
+              src={resolveMediaUrl(item.image)}
+              alt=""
+              className="card-banner-img game-cover-img"
+              style={item.coverPosition ? { objectPosition: item.coverPosition } : undefined}
+              loading="lazy"
+            />
           ) : (
             <span className="project-emoji">{item.emoji}</span>
           )}
           {item.platform && <span className="card-platform-tag">{item.platform}</span>}
-          {item.period && !item.platform && <span className="card-date-tag">{item.period}</span>}
+          {status && <span className={`game-status-badge game-cover-status ${status.className}`}>{status.label}</span>}
         </div>
 
-        <div className="project-content playground-card-content">
-          <h2 className="project-title playground-card-title">{getItemTitle(item)}</h2>
-
-          {/* 特色元資料 (評分/狀態/標籤) */}
-          <div className="card-meta">
-            {item.rating ? (
-              <div className="card-rating">{item.rating}</div>
-            ) : item.tag ? (
-              <span className="travel-tag-pill">{item.tag}</span>
-            ) : null}
-            {status && <span className={`game-status-badge ${status.className}`}>{status.label}</span>}
-          </div>
-
-          {/* 遊戲進度條 */}
-          {item.type === 'game' && (
-            <div className="game-progress">
-              <div className="progress-bar-wrapper">
-                <motion.div
-                  className="progress-bar-fill"
-                  variants={progressVariants(item.percent)}
-                  initial="hidden"
-                  animate="visible"
-                  style={{ background: item.gradient }}
-                />
-              </div>
-              <span className="game-progress-value">{item.percent}%</span>
+        <div className="game-card-body">
+          <h2 className="game-card-title">{item.title}</h2>
+          <Rating rating={item.rating} />
+          <div className="game-progress">
+            <div className="progress-bar-wrapper">
+              <motion.div
+                className="progress-bar-fill"
+                variants={progressVariants(item.percent)}
+                initial="hidden"
+                animate="visible"
+                style={{ background: item.gradient }}
+              />
             </div>
-          )}
-
-          <p className="project-desc line-clamp-2">
-            {item.comment || item.memory || '心得撰寫中…'}
-          </p>
+            <span className="game-progress-value">{progressText(item)}</span>
+          </div>
+          {item.comment && <p className="game-card-comment line-clamp-2">{item.comment}</p>}
         </div>
       </div>
-    </motion.button>
+    </Tag>
+  );
+};
+
+// 旅行卡片：國家代碼標籤；有對應遊記時右下角多一個「讀遊記」連結
+const TravelCard = ({ item, onSelect }) => {
+  const clickable = hasDetail(item);
+  const post = item.post ? postBySlug[item.post] : null;
+  const Tag = clickable ? motion.button : motion.div;
+  return (
+    <motion.div className="travel-card-wrapper" variants={itemVariants}>
+      <Tag
+        type={clickable ? 'button' : undefined}
+        className={`project-card-wrapper ${clickable ? 'card-button' : 'is-static'}`}
+        whileHover={clickable ? { y: -6, transition: { duration: 0.15, ease: 'easeOut' } } : undefined}
+        onClick={clickable ? () => onSelect(item) : undefined}
+      >
+        <div className="project-card-glass playground-interactive-card">
+          <div className="project-banner" style={{ background: item.gradient }}>
+            {item.image ? (
+              <img src={resolveMediaUrl(item.image)} alt="" className="card-banner-img" loading="lazy" />
+            ) : (
+              <span className="project-emoji">{item.emoji}</span>
+            )}
+            {item.period && <span className="card-date-tag">{item.period}</span>}
+          </div>
+
+          <div className={`project-content playground-card-content ${post ? 'has-post-link' : ''}`}>
+            <h2 className="project-title playground-card-title"><ItemTitle item={item} /></h2>
+            {item.tag && (
+              <div className="card-meta">
+                <span className="travel-tag-pill">{item.tag}</span>
+              </div>
+            )}
+            {item.memory && <p className="project-desc line-clamp-2">{item.memory}</p>}
+          </div>
+        </div>
+      </Tag>
+      {/* 連結放在按鈕外面（按鈕裡不能再放連結），用定位疊在卡片右下角 */}
+      {post && (
+        <Link to={`/blog/${post.slug}`} className="travel-post-link">讀遊記 →</Link>
+      )}
+    </motion.div>
   );
 };
 
@@ -240,8 +313,8 @@ const Playground = () => {
     >
       {/* 頁面標題 */}
       <motion.div className="playground-header" variants={itemVariants}>
-        <span className="path-label">~/playground</span>
-        <h1 className="glitch" data-text="Retro's Life Dashboard">Retro's Life Dashboard</h1>
+        <span className="path-label">~/archive</span>
+        <h1 className="glitch" data-text="RETRO'S LOGBOOK">RETRO'S LOGBOOK</h1>
         <p className="playground-subtitle">紀錄阿浩的快樂日子0.0</p>
       </motion.div>
 
@@ -277,14 +350,17 @@ const Playground = () => {
           {concertsByYear.map(group => (
             <section key={group.year} className="concert-year-group">
               <motion.h2 className="concert-year" variants={itemVariants}>{group.year}</motion.h2>
-              {group.items.map(concert => (
-                <motion.button
-                  type="button"
+              {group.items.map(concert => {
+                const clickable = hasDetail(concert);
+                const Tag = clickable ? motion.button : motion.div;
+                return (
+                <Tag
+                  type={clickable ? 'button' : undefined}
                   key={getItemKey(concert)}
-                  className="concert-item card-button"
+                  className={`concert-item ${clickable ? 'card-button' : 'is-static'}`}
                   variants={itemVariants}
-                  whileHover={{ x: 4, transition: { duration: 0.15 } }}
-                  onClick={() => setSelectedItem(concert)}
+                  whileHover={clickable ? { x: 4, transition: { duration: 0.15 } } : undefined}
+                  onClick={clickable ? () => setSelectedItem(concert) : undefined}
                 >
                   <span className="concert-dot" aria-hidden="true" />
                   <img src={resolveMediaUrl(concert.image)} alt="" className="concert-thumb" loading="lazy" />
@@ -294,28 +370,29 @@ const Playground = () => {
                     <span className="concert-venue"><LuMapPin aria-hidden="true" /> {concert.venue}</span>
                     <span className="concert-memory">{concert.memory}</span>
                   </span>
-                </motion.button>
-              ))}
+                </Tag>
+                );
+              })}
             </section>
           ))}
         </motion.div>
       ) : (
         <motion.div
           key={activeTab}
-          className="projects-grid playground-grid-layout"
+          className={activeTab === 'games' ? 'game-library-grid' : 'projects-grid playground-grid-layout'}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {(activeTab === 'travels' ? travels : games).map(item => (
-            <PlaygroundCard key={getItemKey(item)} item={item} onSelect={setSelectedItem} />
-          ))}
+          {activeTab === 'travels'
+            ? travels.map(item => <TravelCard key={getItemKey(item)} item={item} onSelect={setSelectedItem} />)
+            : games.map(item => <GameCard key={getItemKey(item)} item={item} onSelect={setSelectedItem} />)}
         </motion.div>
       )}
 
       <AnimatePresence>
         {selectedItem && (
-          <RetroModal title={`~/playground/${activeTab}`} onClose={closeModal}>
+          <RetroModal title={`~/archive/${activeTab}`} onClose={closeModal}>
             {/* 頂部橫幅 */}
             <div className="modal-banner" style={{ background: selectedItem.gradient }}>
               {selectedItem.image ? (
@@ -330,13 +407,13 @@ const Playground = () => {
               <span className="modal-meta-label">
                 {selectedItem.platform || selectedItem.venue || selectedItem.period}
               </span>
-              <h2 className="modal-title">{getItemTitle(selectedItem)}</h2>
+              <h2 className="modal-title"><ItemTitle item={selectedItem} /></h2>
 
               <div className="modal-info-row">
-                {selectedItem.rating && <span className="modal-rating">{selectedItem.rating}</span>}
+                <Rating rating={selectedItem.rating} />
                 <span className="modal-status-badge">
                   {selectedStatus
-                    ? `${selectedStatus.label} · ${selectedItem.percent}%`
+                    ? `${selectedStatus.label} · ${progressText(selectedItem)}`
                     : selectedItem.tag || selectedItem.period}
                 </span>
               </div>
@@ -344,9 +421,10 @@ const Playground = () => {
               <div className="modal-divider" />
 
               <h4 className="modal-section-heading">{'// 心得回顧'}</h4>
-              <p className="modal-detailed-thoughts">
-                {selectedItem.detailedThoughts || '心得撰寫中…'}
-              </p>
+              <p className="modal-detailed-thoughts">{selectedItem.detailedThoughts}</p>
+              {selectedItem.post && postBySlug[selectedItem.post] && (
+                <Link to={`/blog/${selectedItem.post}`} className="travel-post-link in-modal" onClick={closeModal}>讀遊記 →</Link>
+              )}
             </div>
           </RetroModal>
         )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { LuSun, LuMoon, LuMenu, LuX } from 'react-icons/lu';
 import Home from './Home';
@@ -18,8 +18,14 @@ const NAV_ITEMS = [
   { to: '/about', label: 'About' },
   { to: '/projects', label: 'Projects' },
   { to: '/blog', label: 'Blog' },
-  { to: '/playground', label: 'Playground' },
+  { to: '/archive', label: 'Archive' },
 ];
+
+// 舊網址 #/playground（含 ?tab=setup 之類的參數）轉到新網址 #/archive
+const PlaygroundRedirect = () => {
+  const { search } = useLocation();
+  return <Navigate to={`/archive${search}`} replace />;
+};
 
 // 讀取初始主題：使用者上次的選擇 > 系統偏好（index.html 已先套用到 <html>）
 const getInitialTheme = () => {
@@ -127,7 +133,8 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/playground" element={<Playground />} />
+            <Route path="/archive" element={<Playground />} />
+            <Route path="/playground" element={<PlaygroundRedirect />} />
           </Routes>
         </main>
 
