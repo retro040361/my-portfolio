@@ -439,6 +439,68 @@ export const IPad = (props) => {
   );
 };
 
+// Canon EOS R10 + RF-S 18-150mm 鏡頭：鏡頭朝 +x，握把在右手邊（+z）
+// 機身約 12 × 9 × 6 公分，鏡頭直徑約 7 公分、長約 8.5 公分
+export const CanonR10 = (props) => {
+  const logo = useLabelTexture('Canon', { w: 256, h: 64, color: '#e8e8ec', font: 'italic 700 44px Georgia, serif' });
+  const lensText = useLabelTexture('RF-S 18-150mm', { w: 256, h: 40, color: '#b8bac2', font: '600 24px Arial, sans-serif' });
+  const BODY = '#1a1a1d';
+  const RUBBER = '#141416';
+  return (
+    <group {...props}>
+      {/* 機身、握把、上方的觀景窗凸起、熱靴 */}
+      <Box p={[0, 0.042, 0]} s={[0.05, 0.074, 0.122]} c={BODY} r={0.009} rough={0.55} />
+      <Box p={[0.014, 0.04, 0.046]} s={[0.074, 0.078, 0.034]} c={RUBBER} r={0.014} rough={0.85} />
+      <Box p={[-0.002, 0.088, -0.008]} s={[0.046, 0.028, 0.048]} c={BODY} r={0.007} rough={0.55} />
+      <Box p={[-0.002, 0.104, -0.008]} s={[0.022, 0.004, 0.02]} c="#3a3b40" r={0.001} rough={0.4} />
+      {/* 模式轉盤與快門鈕 */}
+      <mesh position={[-0.006, 0.084, 0.034]} castShadow>
+        <cylinderGeometry args={[0.012, 0.012, 0.008, 20]} />
+        <meshStandardMaterial color="#2a2a2e" roughness={0.5} />
+      </mesh>
+      <mesh position={[0.02, 0.082, 0.05]} castShadow>
+        <cylinderGeometry args={[0.006, 0.006, 0.005, 16]} />
+        <meshStandardMaterial color="#26262a" roughness={0.4} />
+      </mesh>
+      {/* Canon 字樣（觀景窗凸起正面） */}
+      <Panel p={[0.0215, 0.09, -0.008]} size={[0.036, 0.009]} rot={[0, Math.PI / 2, 0]}>
+        <meshBasicMaterial map={logo} transparent toneMapped={false} />
+      </Panel>
+      {/* 鏡頭：卡口金屬環 → 鏡筒 → 對焦環 / 變焦環（橡膠紋） → 前鏡片 */}
+      <group position={[0.025, 0.042, -0.008]} rotation={[0, 0, -Math.PI / 2]}>
+        <mesh position={[0, 0.003, 0]}>
+          <cylinderGeometry args={[0.029, 0.029, 0.006, 32]} />
+          <meshStandardMaterial color="#8d9097" metalness={0.8} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, 0.045, 0]} castShadow>
+          <cylinderGeometry args={[0.0305, 0.03, 0.08, 32]} />
+          <meshStandardMaterial color={BODY} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.034, 0]}>
+          <cylinderGeometry args={[0.0318, 0.0318, 0.026, 32]} />
+          <meshStandardMaterial color={RUBBER} roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.07, 0]}>
+          <cylinderGeometry args={[0.0312, 0.0312, 0.012, 32]} />
+          <meshStandardMaterial color={RUBBER} roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.0855, 0]}>
+          <cylinderGeometry args={[0.029, 0.029, 0.001, 32]} />
+          <meshStandardMaterial color="#1c2a3f" metalness={0.6} roughness={0.08} />
+        </mesh>
+        <mesh position={[0, 0.0857, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.012, 24]} />
+          <meshBasicMaterial color="#8fb7ff" transparent opacity={0.25} toneMapped={false} />
+        </mesh>
+      </group>
+      {/* 鏡筒上的白字 */}
+      <Panel p={[0.076, 0.0735, -0.008]} size={[0.04, 0.0065]} rot={[-Math.PI / 2, 0, 0]}>
+        <meshBasicMaterial map={lensText} transparent toneMapped={false} />
+      </Panel>
+    </group>
+  );
+};
+
 // 螢幕（面向 +x 的薄方塊＋發光畫面）
 export const Monitor = ({ screenTexture, body = '#0d0d12', width = 0.8, height = 0.46, chin = 0, chinLabel, ...props }) => {
   const label = useLabelTexture(chinLabel || '', { w: 256, h: 48, color: '#cfd0d8', font: '700 30px Arial, sans-serif' });

@@ -265,4 +265,5 @@ export const gear = [
   { key: 'mouse', category: '滑鼠', name: 'Razer Cobra Pro', specs: ['黑色'] },
   { key: 'controller', category: '手把', name: 'Xbox Controller', specs: [] },
   { key: 'shark', category: '玩偶', name: 'IKEA BLÅHAJ 鯊魚', specs: ['100 公分'] },
+  { key: 'camera', category: '相機', name: 'Canon EOS R10', specs: ['RF-S 18-150mm F3.5-6.3 IS STM'] },
 ];

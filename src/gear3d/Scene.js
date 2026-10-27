@@ -4,7 +4,7 @@ import { Html, OrthographicCamera, PresentationControls, PerformanceMonitor } fr
 import { EffectComposer, N8AO, Bloom, Noise, Vignette, ToneMapping, SMAA, Select, Outline } from '@react-three/postprocessing';
 import { ToneMappingMode, BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
-import { Box, Clay, Glow, Panel, LedStrip, RgbGlowMaterial, XboxController, Phone, AllyX, Switch2, MacBook, IPad, Monitor, PcTower, EdifierSpeaker, TvBench, GameCase, PokeBall, RazerCobraPro, Mouse, Blahaj } from './parts';
+import { Box, Clay, Glow, Panel, LedStrip, RgbGlowMaterial, XboxController, Phone, AllyX, Switch2, MacBook, IPad, Monitor, PcTower, EdifierSpeaker, TvBench, GameCase, PokeBall, RazerCobraPro, Mouse, Blahaj, CanonR10 } from './parts';
 import { useAnimatedTexture, useStaticTexture, useWoodTexture } from './textures';
 import { drawCodeScreen, drawEldenScreen, drawSwitchScreen, drawWindowSky, drawNeonText } from './screens';
 import Person, { usePlayWeight } from './Person';
@@ -31,6 +31,7 @@ export const ANCHORS = {
   games: [3.2, 0.3, 0.26],
   mouse: [0.6, 0.9, 2.08],
   shark: [0.78, 0.62, 0.75],
+  camera: [0.16, 2.66, 1.38],
   controller: [0.38, 0.92, 1.9],
   switch2: [2.86, 0.6, 0.14],
   headphones: [1.09, 1.4, BOY_Z],
@@ -370,6 +371,10 @@ const Scene = ({ active, setActive, theme, lowPower, tooltip, onReady, onPerform
           {[2.0, 2.5].map(y => (
             <Box key={y} p={[0.13, y, 0.92]} s={[0.26, 0.04, 1.24]} c="#d9c3a5" r={0.01} />
           ))}
+          {/* Canon R10：放在上層置物架，鏡頭朝房間斜斜對著鏡頭方向 */}
+          <Item id="camera" active={active} setActive={setActive} hit={<HitArea p={[0.15, 2.57, 1.38]} r={0.11} />}>
+            <CanonR10 position={[0.1, 2.52, 1.38]} rotation={[0, -0.45, 0]} />
+          </Item>
           {books.map(b => (
             <Box key={b.z} p={[0.13, 2.02 + b.h / 2, b.z]} s={[0.18, b.h, 0.055]} c={b.c} r={0.008} />
           ))}
